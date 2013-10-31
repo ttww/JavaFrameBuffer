@@ -110,8 +110,8 @@ public class TestFrameBuffer {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				TestFrameBuffer mt = new TestFrameBuffer("/dev/fb1");
-//				TestFrameBuffer mt = new TestFrameBuffer("dummy_200x330");
+//				TestFrameBuffer mt = new TestFrameBuffer("/dev/fb1");
+				TestFrameBuffer mt = new TestFrameBuffer("dummy_200x330");
 
 				if (true) {
 					JFrame f = new JFrame("Frame Buffer Test");
