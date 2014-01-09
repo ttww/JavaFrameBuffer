@@ -9,8 +9,10 @@
 
 package org.tw.pi.framebuffer;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 
@@ -122,11 +124,11 @@ public class FrameBuffer {
 	private ScreenPanel	screenPanel;
 
 	/**
-	 * Returns a JPanel which represents the actual frame buffer device.
+	 * Returns a ScreenPanel (JPanel) which represents the actual frame buffer device.
 	 * 
-	 * @return	JPanel...
+	 * @return	ScreenPanel...
 	 */
-	public JPanel getScreenPanel() {
+	public ScreenPanel getScreenPanel() {
 		synchronized (deviceName) {
 			if (screenPanel != null) throw new IllegalStateException("Only one screen panel supported");
 
@@ -142,7 +144,10 @@ public class FrameBuffer {
 	 * Internal helper class for displaying the current frame buffer image via a JPanel.
 	 */
 	@SuppressWarnings("serial")
-	private class ScreenPanel extends JPanel {
+	public class ScreenPanel extends JPanel {
+
+		private int	scale	= 1;
+
 		public ScreenPanel() {
 			setPreferredSize(new Dimension(FrameBuffer.this.width,FrameBuffer.this.height));
 		}
@@ -150,7 +155,24 @@ public class FrameBuffer {
 		@Override
 		protected void paintComponent(Graphics g) {
 			super.paintComponent(g);
+
+			int w  = this.getWidth();
+			int h  = this.getHeight();
+			int wi = img.getWidth() * scale;
+			int hi = img.getHeight() * scale;
+
+			Graphics2D g2 = (Graphics2D) g;
+			g2.translate(w / 2 - wi / 2, h / 2 - hi / 2);
+			g2.scale(scale,scale);
+
+			g.setColor(Color.BLACK);
+			g.fillRect(0,0,img.getWidth(), img.getHeight() );
 			g.drawImage(img, 0, 0, null);
+		}
+
+		public void setScale(int scale) {
+			this.scale = scale;
+			repaint();
 		}
 	}
 
@@ -193,7 +215,7 @@ public class FrameBuffer {
 	// -----------------------------------------------------------------------------------------------------------------
 
 	/**
-	 * Returns the BufferedImage for drawing. Anything your draw here is synchronizet to the frame buffer.
+	 * Returns the BufferedImage for drawing. Anything your draw here is synchronized to the frame buffer.
 	 *
 	 * @return	BufferedImage of type ARGB.
 	 */

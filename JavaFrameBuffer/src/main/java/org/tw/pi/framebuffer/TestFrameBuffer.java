@@ -10,7 +10,10 @@ package org.tw.pi.framebuffer;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.GradientPaint;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.Random;
@@ -46,6 +49,10 @@ public class TestFrameBuffer {
 
 				Graphics2D g = img.createGraphics();
 
+				// RenderingHints.VALUE_ANTIALIAS_ON must before rotate !
+				// Rotated font drawing behaves strange without that....
+				g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
 				g.setColor(Color.LIGHT_GRAY);
 				g.fillRect(0, 0, w, h);
 
@@ -68,6 +75,8 @@ public class TestFrameBuffer {
 				AffineTransform st = g.getTransform();
 				g.translate(w/2, h/2+5);
 
+				AffineTransform stt = g.getTransform();
+
 				for (int i=0; i<360; i += 4) {
 
 					g.rotate(Math.toRadians(i));
@@ -84,9 +93,32 @@ public class TestFrameBuffer {
 					g.setColor(Color.LIGHT_GRAY);
 					g.drawString("Nice !!!", 0,0);
 
-					g.rotate(Math.toRadians(-i));
+					g.setTransform(stt);
+//					g.rotate(Math.toRadians(-i));
 				}
 				g.setTransform(st);
+
+
+				g.setFont(new Font("Serif", Font.BOLD, 30));
+				Color c1 = new Color(0, 0, 0, 0);
+				Color c2 = new Color(0, 0, 0, 100);
+				GradientPaint gradient = new GradientPaint(10, 8, c1, 10, 40, c2, true);
+
+				g.setColor(Color.GREEN);
+				g.fillRect(0, 0, w, h);
+				g.setColor(Color.BLACK);
+				g.setPaint(gradient);
+				g.fillRoundRect(100, 100, 200, 50, 25, 25);
+				g.setPaint(Color.BLACK);
+				g.drawRoundRect(100, 100, 200, 50, 25, 25);
+				g.drawString("Hello World!", 118, 135);
+
+				try {
+					sleep(2000);
+				} catch (InterruptedException e) {
+					return;
+				}
+
 
 				Random r = new Random();
 
@@ -110,8 +142,8 @@ public class TestFrameBuffer {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				TestFrameBuffer mt = new TestFrameBuffer("/dev/fb1");
-//				TestFrameBuffer mt = new TestFrameBuffer("dummy_200x330");
+//				TestFrameBuffer mt = new TestFrameBuffer("/dev/fb1");
+				TestFrameBuffer mt = new TestFrameBuffer("dummy_200x330");
 
 				if (true) {
 					JFrame f = new JFrame("Frame Buffer Test");
