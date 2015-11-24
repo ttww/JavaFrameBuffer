@@ -6,7 +6,7 @@ import java.awt.image.DirectColorModel;
 import java.awt.image.WritableRaster;
 
 public class FrameBufferImage extends BufferedImage {
-	private static ColorModel createColorModel() {
+	static ColorModel createColorModel() {
 		return new DirectColorModel(24,
                 0x00ff0000,   // Red
                 0x0000ff00,   // Green
@@ -15,7 +15,7 @@ public class FrameBufferImage extends BufferedImage {
                 );
 	}
 	
-	private static WritableRaster createWritableRaster(FrameBufferDataBuffer dataBuffer) {
+	static WritableRaster createWritableRaster(FrameBufferDataBuffer dataBuffer) {
 		return new FrameBufferRaster(dataBuffer);
 	}
 	

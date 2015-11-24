@@ -8,13 +8,15 @@ import java.awt.image.WritableRaster;
 
 public class FrameBufferRaster extends WritableRaster {
 
-	private static SampleModel createSampleModel(FrameBufferDataBuffer dataBuffer) {
+	static SampleModel createSampleModel(int w, int h) {
 		return new SinglePixelPackedSampleModel(
 				DataBuffer.TYPE_INT, 
-				dataBuffer.getWidth(), 
-				dataBuffer.getHeight(), 
+				w, 
+				h, 
 				new int[] {
-						0x00ffffff
+						0x00ff0000,
+						0x0000ff00,
+						0x000000ff,
 				});
 	}
 
@@ -23,7 +25,7 @@ public class FrameBufferRaster extends WritableRaster {
 	}
 	
 	public FrameBufferRaster(FrameBufferDataBuffer dataBuffer) {
-		super(createSampleModel(dataBuffer), dataBuffer, new Point(0, 0));
+		super(createSampleModel(dataBuffer.getWidth(), dataBuffer.getHeight()), dataBuffer, new Point(0, 0));
 	}
 	
 	public void close() {
