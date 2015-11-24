@@ -25,7 +25,7 @@
 
 #include <sys/mman.h>
 
-#include "org_tw_pi_framebuffer_FrameBuffer.h"
+#include <jni.h>
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Handle structur from Java:
