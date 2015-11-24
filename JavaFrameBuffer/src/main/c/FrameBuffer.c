@@ -10,7 +10,7 @@
  *
  *	For testing purpose a dummy device is supported (via the devicename "dummy_160x128" instead of "/dev/fb1").
  *
-**/
+ **/
 
 #include <unistd.h>
 #include <stdio.h>
@@ -19,17 +19,14 @@
 #include <fcntl.h>
 
 #ifdef __linux
-	#include <linux/fb.h>
-	#include <sys/ioctl.h>
+#include <linux/fb.h>
+#include <sys/ioctl.h>
 #endif
 
 #include <sys/mman.h>
 
 #include <jni.h>
 
-// ---------------------------------------------------------------------------------------------------------------------
-// Handle structur from Java:
-// ---------------------------------------------------------------------------------------------------------------------
 struct deviceInfo {
 	char *deviceName;				// Device-Name from Java ("/dev/fb1" or "dummy_240x180")...
 	int fbfd;						// File descriptor, 0 for dummy devices
@@ -42,12 +39,16 @@ struct deviceInfo {
 
 	char *fbp;						// MemoryMapped buffer
 
-	unsigned int *currentScreen;	// Last screen
+	unsigned int *dummy;	// Last screen
 };
 
-// ---------------------------------------------------------------------------------------------------------------------
-//	long	openDevice(String device);
-// ---------------------------------------------------------------------------------------------------------------------
+// http://stackoverflow.com/questions/4770985/how-to-check-if-a-string-starts-with-another-string-in-c
+static int starts_with(const char *pre, const char *str) {
+	size_t lenpre = strlen(pre);
+	size_t lenstr = strlen(str);
+	return lenstr < lenpre ? 0 : strncmp(pre, str, lenpre) == 0;
+}
+
 JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_openDevice(
 		JNIEnv *env, jobject obj, jstring device) {
 
@@ -64,10 +65,10 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_openDevice(
 		(*env)->ReleaseStringUTFChars(env, device, s);
 
 	// Open the file for reading and writing
-	if (*di->deviceName == '/') {
+	if (!starts_with("dummy_", di->deviceName)) {
 
 #ifndef __linux
-		printf("Error: Framebuffer only under linux, use dummy device (dummy_220x440) instead %s\n",di->deviceName);
+		//		printf("Error: Framebuffer only under linux, use dummy device (dummy_220x440) instead %s\n",di->deviceName);
 		return (1);
 #else
 
@@ -76,32 +77,29 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_openDevice(
 
 		di->fbfd = open(di->deviceName, O_RDWR);
 		if (!di->fbfd) {
-			printf("Error: cannot open framebuffer device. %s\n",
-					di->deviceName);
+			//			printf("Error: cannot open framebuffer device. %s\n", di->deviceName);
 			return (1);
 		}
-		printf("The framebuffer device %s was opened successfully.\n",
-				di->deviceName);
+		//		printf("The framebuffer device %s was opened successfully.\n", di->deviceName);
 
 		// Get fixed screen information
 		if (ioctl(di->fbfd, FBIOGET_FSCREENINFO, &finfo)) {
-			printf("Error reading fixed information.\n");
+			//			printf("Error reading fixed information.\n");
 			return (2);
 		}
 
 		// Get variable screen information
 		if (ioctl(di->fbfd, FBIOGET_VSCREENINFO, &vinfo)) {
-			printf("Error reading variable information.\n");
+			//			printf("Error reading variable information.\n");
 			return (3);
 		}
 
 		di->width = vinfo.xres;
 		di->height = vinfo.yres;
 		di->bpp = vinfo.bits_per_pixel;
-		di->currentScreen = malloc(vinfo.xres * vinfo.yres * sizeof(int));
+		di->dummy = NULL;
 
-		printf("%dx%d, %d bpp  %ld bytes\n", vinfo.xres, vinfo.yres,
-				vinfo.bits_per_pixel, (long) finfo.smem_len);
+		//		printf("%dx%d, %d bpp  %ld bytes\n", vinfo.xres, vinfo.yres, vinfo.bits_per_pixel, (long) finfo.smem_len);
 
 		// map framebuffer to user memory
 		di->screensize = finfo.smem_len;
@@ -110,7 +108,7 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_openDevice(
 				MAP_SHARED, di->fbfd, 0);
 
 		if ((int) di->fbp == -1) {
-			printf("Failed to mmap.\n");
+			//			printf("Failed to mmap.\n");
 			return (4);
 		}
 #endif
@@ -118,21 +116,19 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_openDevice(
 		// Parse dummy_123x343
 		sscanf(di->deviceName, "dummy_%dx%d", &di->width, &di->height);
 		di->bpp = 0;
-		di->currentScreen = malloc(di->width * di->height * sizeof(int));
+		di->dummy = malloc(di->width * di->height * sizeof(int));
 	}
 	return (jlong) (intptr_t) di;
 }
 
-// ---------------------------------------------------------------------------------------------------------------------
-//	void		closeDevice(long di);
-// ---------------------------------------------------------------------------------------------------------------------
 JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_closeDevice(
 		JNIEnv *env, jobject obj, jlong jdi) {
 
 	struct deviceInfo *di = (struct deviceInfo *) (intptr_t) jdi;
 
 	free(di->deviceName);
-	free(di->currentScreen);
+	if(di->dummy)
+		free(di->dummy);
 
 	if (di->fbfd != 0) {
 		munmap(di->fbp, di->screensize);
@@ -142,9 +138,6 @@ JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_closeDevice(
 	memset(di, 0, sizeof(*di)); // :-)
 }
 
-// ---------------------------------------------------------------------------------------------------------------------
-//	int		getDeviceWidth(long di);
-// ---------------------------------------------------------------------------------------------------------------------
 JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_getDeviceWidth(
 		JNIEnv *env, jobject obj, jlong jdi) {
 
@@ -153,9 +146,6 @@ JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_getDeviceWidth(
 	return di->width;
 }
 
-// ---------------------------------------------------------------------------------------------------------------------
-//	int		getDeviceHeight(long di);
-// ---------------------------------------------------------------------------------------------------------------------
 JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_getDeviceHeight(
 		JNIEnv *env, jobject obj, jlong jdi) {
 
@@ -164,9 +154,6 @@ JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_getDeviceHeight(
 	return di->height;
 }
 
-// ---------------------------------------------------------------------------------------------------------------------
-//	int		getDeviceBitsPerPixel(long di);
-// ---------------------------------------------------------------------------------------------------------------------
 JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_getDeviceBitsPerPixel(
 		JNIEnv *env, jobject obj, jlong jdi) {
 
@@ -175,42 +162,49 @@ JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_getDeviceBitsPerPi
 	return di->bpp;
 }
 
-// ---------------------------------------------------------------------------------------------------------------------
-//	boolean	updateDeviceBuffer(long di,int[] buffer);
-// ---------------------------------------------------------------------------------------------------------------------
-JNIEXPORT jboolean JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_updateDeviceBuffer(
+static unsigned short to_16bit(unsigned int rgb) {
+	unsigned char r = (rgb >> 16) & 0x0ff;
+	unsigned char g = (rgb >> 8) & 0x0ff;
+	unsigned char b = (rgb) & 0x0ff;
+
+	return ((r / 8) << 11) + ((g / 4) << 5) + (b / 8);
+}
+
+static unsigned int from_16bit(unsigned short rgb) {
+	unsigned int r = 0xff & ((rgb >> 11) << 3);
+	unsigned int g = 0xff & ((rgb >> 5) << 2);
+	unsigned int b = 0xff & (rgb << 2);
+
+	return (r << 16) + (g << 8) + b;
+}
+
+JNIEXPORT jboolean JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_writeDeviceBuffer(
 		JNIEnv *env, jobject obj, jlong jdi, jintArray buf) {
 
 	struct deviceInfo	*di = (struct deviceInfo *) (intptr_t) jdi;
 	int					i;
 	jsize				len = (*env)->GetArrayLength(env, buf);
-	unsigned int		*current = di->currentScreen;
+	unsigned int		*dummy = di->dummy;
 	int					updated = 0;
 
 
-// See http://docs.oracle.com/javase/1.5.0/docs/guide/jni/spec/functions.html
-#define USE_CRITICAL		// Avoid copy, but blocks gc....
-#ifdef USE_CRITICAL
 	jint			*body = (*env)->GetPrimitiveArrayCritical(env, buf, 0);
-#else
-	jboolean		isCopy;
-	jint			*body = (*env)->GetIntArrayElements(env, buf, &isCopy);
-#endif
+	unsigned short *p = (unsigned short *) di->fbp;
 
 	switch (di->bpp) {
-	case 0: {
+	case 0:
 		// Dummy Device
 		for (i = 0; i < len; i++) {
-			unsigned int u = body[i];
+			unsigned int rgb = body[i];
 
-			if (current[i] == u)
+			if (dummy[i] == rgb)
 				continue;
+
 			updated = 1;
-			current[i] = u;
+			dummy[i] = rgb;
 		}
-	}
-	break;
-	case 16: {
+		break;
+	case 16:
 		// Comment from:
 		//		http://raspberrycompote.blogspot.de/2013/03/low-level-graphics-on-raspberry-pi-part_8.html
 		//
@@ -219,60 +213,78 @@ JNIEXPORT jboolean JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_updateDeviceBu
 		// The green has 6 bits, so can be in the range 0-63, divide by 4, and multiply by 32 or shift
 		// 5 bits left. Finally the blue has 5 bits and is stored at the last bits, so no need to move.
 
-		unsigned short *p = (unsigned short *) di->fbp;
-
 		for (i = 0; i < len; i++) {
-			unsigned int u = body[i];
+			unsigned int rgb = body[i];
+			unsigned int now = from_16bit(p[i]);
 
-			if (current[i] == u) continue;
+			if (rgb == now) continue;
 
 			updated = 1;
-			current[i] = u;
 
-			unsigned char r = (u >> 16) & 0x0ff;
-			unsigned char g = (u >> 8) & 0x0ff;
-			unsigned char b = (u) & 0x0ff;
-
-			//printf("%5d:   %#x  %3d  %3d  %3d  %3d\n",i,u,a,r,g,b);
-			u = ((r / 8) << 11) + ((g / 4) << 5) + (b / 8);
-
-			p[i] = u;
+			p[i] = to_16bit(rgb);
 		}
-	}
 		break;
-		/*
-		 case 24:
-		 {
-		 // untested...
-		 for (i=0; i<len; i++) {
-		 unsigned int u = body[i];
 
-		 if (current[i] == u) continue;
-		 current[i] = u;
-
-		 unsigned char r = (u >>16) & 0x0ff;
-		 unsigned char g = (u >> 8) & 0x0ff;
-		 unsigned char b = (u) & 0x0ff;
-
-		 unsigned char *p = ((unsigned char *) di->fbp) + i + i + i;
-		 *p++ = r;
-		 *p++ = g;
-		 *p = b;
-		 }
-		 }
-		 break;
-		 */
 	default:
-		fprintf(stderr, "FrameBuffer depth %d not supported, use 16 !\n",
-				di->bpp);
+		// do nothing
+		break;
 	}
 
-#ifdef USE_CRITICAL
 	(*env)->ReleasePrimitiveArrayCritical(env, buf, body, 0);
-#else
-	if (isCopy) (*env)->ReleaseIntArrayElements(env, buf, body, 0);
-#endif
 
 	return updated;
 }
 
+JNIEXPORT jboolean JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_readDeviceBuffer(
+		JNIEnv *env, jobject obj, jlong jdi, jintArray buf) {
+
+	struct deviceInfo	*di = (struct deviceInfo *) (intptr_t) jdi;
+	int					i;
+	jsize				len = (*env)->GetArrayLength(env, buf);
+	unsigned int		*dummy = di->dummy;
+	int					updated = 0;
+
+
+	jint			*body = (*env)->GetPrimitiveArrayCritical(env, buf, 0);
+	unsigned short *p = (unsigned short *) di->fbp;
+
+	switch (di->bpp) {
+	case 0:
+		// Dummy Device
+		for (i = 0; i < len; i++) {
+			unsigned int rgb = dummy[i];
+
+			if (body[i] == rgb)
+				continue;
+			updated = 1;
+			body[i] = rgb;
+		}
+		break;
+	case 16:
+		// Comment from:
+		//		http://raspberrycompote.blogspot.de/2013/03/low-level-graphics-on-raspberry-pi-part_8.html
+		//
+		// The red value has 5 bits, so can be in the range 0-31, therefore divide the original 0-255
+		// value by 8. It is stored in the first 5 bits, so multiply by 2048 or shift 11 bits left.
+		// The green has 6 bits, so can be in the range 0-63, divide by 4, and multiply by 32 or shift
+		// 5 bits left. Finally the blue has 5 bits and is stored at the last bits, so no need to move.
+
+		for (i = 0; i < len; i++) {
+			unsigned int rgb = from_16bit(p[i]);
+
+			if (body[i] == rgb) continue;
+
+			updated = 1;
+			body[i] = rgb;
+		}
+		break;
+
+	default:
+		// do nothing
+		break;
+	}
+
+	(*env)->ReleasePrimitiveArrayCritical(env, buf, body, 0);
+
+	return updated;
+}
