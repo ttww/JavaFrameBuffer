@@ -178,7 +178,7 @@ static inline unsigned int from_16bit(unsigned short rgb) {
 	return (r << 16) + (g << 8) + b;
 }
 
-JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_writeDeviceBuffer(
+JNIEXPORT jvoid JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_writeDeviceBuffer(
 		JNIEnv *env, jobject obj, jlong jdi, jintArray buf) {
 
 	struct deviceInfo	*di = (struct deviceInfo *) (intptr_t) jdi;
@@ -221,45 +221,3 @@ JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_writeDeviceBuffer(
 	(*env)->ReleasePrimitiveArrayCritical(env, buf, body, 0);
 }
 
-JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_readDeviceBuffer(
-		JNIEnv *env, jobject obj, jlong jdi, jintArray buf) {
-
-	struct deviceInfo	*di = (struct deviceInfo *) (intptr_t) jdi;
-	int					i;
-	jsize				len = (*env)->GetArrayLength(env, buf);
-	unsigned int		*dummy = di->dummy;
-
-
-	jint			*body = (*env)->GetPrimitiveArrayCritical(env, buf, 0);
-	unsigned short *p = (unsigned short *) di->fbp;
-
-	switch (di->bpp) {
-	case 0:
-		// Dummy Device
-		for (i = 0; i < len; i++) {
-			unsigned int rgb = dummy[i];
-			body[i] = rgb;
-		}
-		break;
-	case 16:
-		// Comment from:
-		//		http://raspberrycompote.blogspot.de/2013/03/low-level-graphics-on-raspberry-pi-part_8.html
-		//
-		// The red value has 5 bits, so can be in the range 0-31, therefore divide the original 0-255
-		// value by 8. It is stored in the first 5 bits, so multiply by 2048 or shift 11 bits left.
-		// The green has 6 bits, so can be in the range 0-63, divide by 4, and multiply by 32 or shift
-		// 5 bits left. Finally the blue has 5 bits and is stored at the last bits, so no need to move.
-
-		for (i = 0; i < len; i++) {
-			unsigned int rgb = from_16bit(p[i]);
-			body[i] = rgb;
-		}
-		break;
-
-	default:
-		// do nothing
-		break;
-	}
-
-	(*env)->ReleasePrimitiveArrayCritical(env, buf, body, 0);
-}
