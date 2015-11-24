@@ -21,7 +21,6 @@ public class FrameBufferTest {
 				g.setColor(new Color((int)(0xFFFFFF * Math.random())));
 				g.drawRect(i, i, fb.getWidth() - 2*i, fb.getHeight() - 2*i);
 				fb.write();
-				Thread.sleep(100);
 			}
 		} finally {
 			fb.close();
