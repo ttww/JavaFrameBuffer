@@ -14,10 +14,7 @@ public class FrameBufferRaster extends WritableRaster {
 				dataBuffer.getWidth(), 
 				dataBuffer.getHeight(), 
 				new int[] {
-						0x00ff0000,   // Red
-						0x0000ff00,   // Green
-						0x000000ff,   // Blue
-						0x00000000    // alpha
+						0x00ffffff
 				});
 	}
 
