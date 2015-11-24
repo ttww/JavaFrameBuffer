@@ -65,7 +65,6 @@ public class FrameBuffer implements Closeable {
 	private static native int		getDeviceHeight(long di);
 	private static native int		getDeviceBitsPerPixel(long di);
 	private static native boolean	writeDeviceBuffer(long di,int[] buffer);
-	private static native boolean	readDeviceBuffer(long di,int[] buffer);
 
 	static {
 		NarSystem.loadLibrary();
@@ -117,15 +116,6 @@ public class FrameBuffer implements Closeable {
 		return writeDeviceBuffer(deviceInfo,imgBuffer);
 	}
 	
-	/**
-	 * Update the BufferedImage from the screen.
-	 * 
-	 * @return	true if the BufferedImage was modified.
-	 */
-	public synchronized boolean read() {
-		if (deviceInfo == 0) return false;
-		return readDeviceBuffer(deviceInfo,imgBuffer);
-	}
 	
 	/**
 	 * Close the device.
