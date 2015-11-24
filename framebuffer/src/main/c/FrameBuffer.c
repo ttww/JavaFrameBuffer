@@ -8,7 +8,7 @@
  *	This code transfers an Java BufferedImage ARGB data array to a FrameBuffer device
  *	(e.g. SPI-Displays like http://www.sainsmart.com/blog/ada/).
  *
- *	For testing purpose a dummy device is supported (via the devicename "dummy_160x128" instead of "/dev/fb1").
+ *	For testing purpose a previous device is supported (via the devicename "dummy_160x128" instead of "/dev/fb1").
  *
  **/
 
@@ -29,17 +29,17 @@
 
 struct deviceInfo {
 	char *deviceName;				// Device-Name from Java ("/dev/fb1" or "dummy_240x180")...
-	int fbfd;						// File descriptor, 0 for dummy devices
+	int fbfd;						// File descriptor, 0 for previous devices
 
 	int width;
 	int height;
-	int bpp;						// BitsPerPixel, 0 for dummy devices
+	int bpp;						// BitsPerPixel, 0 for previous devices
 
 	long int screensize;			// Buffer size in bytes
 
 	char *fbp;						// MemoryMapped buffer
 
-	unsigned int *dummy;	// Last screen
+	unsigned int *previous;	// Last screen
 };
 
 // http://stackoverflow.com/questions/4770985/how-to-check-if-a-string-starts-with-another-string-in-c
@@ -68,7 +68,7 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_openDevice(
 	if (!starts_with("dummy_", di->deviceName)) {
 
 #ifndef __linux
-		//		printf("Error: Framebuffer only under linux, use dummy device (dummy_220x440) instead %s\n",di->deviceName);
+		//		printf("Error: Framebuffer only under linux, use previous device (dummy_220x440) instead %s\n",di->deviceName);
 		return (1);
 #else
 
@@ -97,7 +97,7 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_openDevice(
 		di->width = vinfo.xres;
 		di->height = vinfo.yres;
 		di->bpp = vinfo.bits_per_pixel;
-		di->dummy = NULL;
+		di->previous = malloc(di->width * di->height * sizeof(int));
 
 		//		printf("%dx%d, %d bpp  %ld bytes\n", vinfo.xres, vinfo.yres, vinfo.bits_per_pixel, (long) finfo.smem_len);
 
@@ -116,7 +116,7 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_openDevice(
 		// Parse dummy_123x343
 		sscanf(di->deviceName, "dummy_%dx%d", &di->width, &di->height);
 		di->bpp = 0;
-		di->dummy = malloc(di->width * di->height * sizeof(int));
+		di->previous = malloc(di->width * di->height * sizeof(int));
 	}
 	return (jlong) (intptr_t) di;
 }
@@ -127,8 +127,7 @@ JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_closeDevice(
 	struct deviceInfo *di = (struct deviceInfo *) (intptr_t) jdi;
 
 	free(di->deviceName);
-	if(di->dummy)
-		free(di->dummy);
+	free(di->previous);
 
 	if (di->fbfd != 0) {
 		munmap(di->fbp, di->screensize);
@@ -184,7 +183,7 @@ JNIEXPORT jboolean JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_writeDeviceBuf
 	struct deviceInfo	*di = (struct deviceInfo *) (intptr_t) jdi;
 	int					i;
 	jsize				len = (*env)->GetArrayLength(env, buf);
-	unsigned int		*dummy = di->dummy;
+	unsigned int		*previous = di->previous;
 	int					updated = 0;
 
 
@@ -197,11 +196,11 @@ JNIEXPORT jboolean JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_writeDeviceBuf
 		for (i = 0; i < len; i++) {
 			unsigned int rgb = body[i];
 
-			if (dummy[i] == rgb)
+			if (previous[i] == rgb)
 				continue;
 
 			updated = 1;
-			dummy[i] = rgb;
+			previous[i] = rgb;
 		}
 		break;
 	case 16:
@@ -215,12 +214,12 @@ JNIEXPORT jboolean JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_writeDeviceBuf
 
 		for (i = 0; i < len; i++) {
 			unsigned int rgb = body[i];
-			unsigned int now = from_16bit(p[i]);
 
-			if (rgb == now) continue;
+			if (previous[i] == rgb)
+				continue;
 
 			updated = 1;
-
+			previous[i] = rgb;
 			p[i] = to_16bit(rgb);
 		}
 		break;
