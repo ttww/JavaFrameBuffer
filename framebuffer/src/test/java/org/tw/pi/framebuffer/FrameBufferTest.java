@@ -16,12 +16,17 @@ public class FrameBufferTest {
 		FrameBuffer fb = new FrameBuffer(args[0]);
 		BufferedImage buf = fb.getBufferedImage();
 		try {
-			for(Color c = Color.WHITE; !c.equals(Color.BLACK); c = c.darker()) {
-				Graphics g = buf.getGraphics();
+			Graphics g = buf.getGraphics();
+			Color c = Color.WHITE;
+			for(int i = 0; i < Math.min(fb.getWidth(), fb.getHeight()) / 2; i++) {
 				g.setColor(c);
-				g.fillRect(0, 0, buf.getWidth(), buf.getHeight());
+				g.drawRect(i, i, fb.getWidth() - 2*i, fb.getHeight() - 2*i);
 				fb.write();
 				Thread.sleep(100);
+				if(Color.BLACK.equals(c))
+					c = Color.WHITE;
+				else
+					c = c.darker();
 			}
 		} finally {
 			fb.close();
