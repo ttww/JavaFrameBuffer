@@ -162,7 +162,7 @@ JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_getDeviceBitsPerPi
 	return di->bpp;
 }
 
-static unsigned short to_16bit(unsigned int rgb) {
+static inline unsigned short to_16bit(unsigned int rgb) {
 	unsigned char r = (rgb >> 16) & 0x0ff;
 	unsigned char g = (rgb >> 8) & 0x0ff;
 	unsigned char b = (rgb) & 0x0ff;
@@ -170,7 +170,7 @@ static unsigned short to_16bit(unsigned int rgb) {
 	return ((r / 8) << 11) + ((g / 4) << 5) + (b / 8);
 }
 
-static unsigned int from_16bit(unsigned short rgb) {
+static inline unsigned int from_16bit(unsigned short rgb) {
 	unsigned int r = 0xff & ((rgb >> 11) << 3);
 	unsigned int g = 0xff & ((rgb >> 5) << 2);
 	unsigned int b = 0xff & (rgb << 2);
