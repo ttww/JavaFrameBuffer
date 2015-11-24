@@ -39,15 +39,15 @@ import org.tw.pi.NarSystem;
  * <p>
  * If you get the wrong colors, try the CONFIG_FB_ST7735_RGB_ORDER_REVERSED option !
  */
-public abstract class FrameBuffer {
+abstract class FrameBuffer {
 
-	public static native long		openDevice(String device);
-	public static native void		closeDevice(long di);
-	public static native int		getDeviceWidth(long di);
-	public static native int		getDeviceHeight(long di);
-	public static native int		getDeviceBitsPerPixel(long di);
-	public static native void writeRGB(long di, int idx, int rgb);
-	public static native int readRGB(long di, int idx);
+	static native long		openDevice(String device);
+	static native void		closeDevice(long di);
+	static native int		getDeviceWidth(long di);
+	static native int		getDeviceHeight(long di);
+	static native int		getDeviceBitsPerPixel(long di);
+	static native void writeRGB(long di, int idx, int rgb);
+	static native int readRGB(long di, int idx);
 	
 	static {
 		NarSystem.loadLibrary();
