@@ -64,8 +64,8 @@ public class FrameBuffer implements Closeable {
 	private static native int		getDeviceWidth(long di);
 	private static native int		getDeviceHeight(long di);
 	private static native int		getDeviceBitsPerPixel(long di);
-	private static native boolean	writeDeviceBuffer(long di,int[] buffer);
-	private static native boolean	readDeviceBuffer(long di,int[] buffer);
+	private static native void	writeDeviceBuffer(long di,int[] buffer);
+	private static native void	readDeviceBuffer(long di,int[] buffer);
 
 	static {
 		NarSystem.loadLibrary();
@@ -101,32 +101,32 @@ public class FrameBuffer implements Closeable {
 
 	// -----------------------------------------------------------------------------------------------------------------
 
-	
+
 
 	// -----------------------------------------------------------------------------------------------------------------
 
 	// -----------------------------------------------------------------------------------------------------------------
-	
+
 	/**
 	 * Update the screen from the BufferedImage.
 	 * 
 	 * @return	true if the screen was modified.
 	 */
-	public synchronized boolean write() {
-		if (deviceInfo == 0) return false;
-		return writeDeviceBuffer(deviceInfo,imgBuffer);
+	public synchronized void write() {
+		if (deviceInfo == 0) return;
+		writeDeviceBuffer(deviceInfo,imgBuffer);
 	}
-	
+
 	/**
 	 * Update the BufferedImage from the screen.
 	 * 
 	 * @return	true if the BufferedImage was modified.
 	 */
-	public synchronized boolean read() {
-		if (deviceInfo == 0) return false;
-		return readDeviceBuffer(deviceInfo,imgBuffer);
+	public synchronized void read() {
+		if (deviceInfo == 0) return;
+		readDeviceBuffer(deviceInfo,imgBuffer);
 	}
-	
+
 	/**
 	 * Close the device.
 	 */
@@ -144,12 +144,12 @@ public class FrameBuffer implements Closeable {
 
 	// -----------------------------------------------------------------------------------------------------------------
 
-	
+
 
 	// -----------------------------------------------------------------------------------------------------------------
-	
+
 	// -----------------------------------------------------------------------------------------------------------------
-	
+
 	/**
 	 * Returns the BufferedImage for drawing. Anything your draw here is synchronized to the frame buffer.
 	 *
@@ -161,15 +161,15 @@ public class FrameBuffer implements Closeable {
 	public String getDeviceName() {
 		return deviceName;
 	}
-	
+
 	public int getWidth() {
 		return width;
 	}
-	
+
 	public int getHeight() {
 		return height;
 	}
-	
+
 	public int getBits() {
 		return bits;
 	}

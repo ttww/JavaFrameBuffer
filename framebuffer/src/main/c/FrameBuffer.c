@@ -178,14 +178,13 @@ static inline unsigned int from_16bit(unsigned short rgb) {
 	return (r << 16) + (g << 8) + b;
 }
 
-JNIEXPORT jboolean JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_writeDeviceBuffer(
+JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_writeDeviceBuffer(
 		JNIEnv *env, jobject obj, jlong jdi, jintArray buf) {
 
 	struct deviceInfo	*di = (struct deviceInfo *) (intptr_t) jdi;
 	int					i;
 	jsize				len = (*env)->GetArrayLength(env, buf);
 	unsigned int		*dummy = di->dummy;
-	int					updated = 0;
 
 
 	jint			*body = (*env)->GetPrimitiveArrayCritical(env, buf, 0);
@@ -196,11 +195,6 @@ JNIEXPORT jboolean JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_writeDeviceBuf
 		// Dummy Device
 		for (i = 0; i < len; i++) {
 			unsigned int rgb = body[i];
-
-			if (dummy[i] == rgb)
-				continue;
-
-			updated = 1;
 			dummy[i] = rgb;
 		}
 		break;
@@ -215,12 +209,6 @@ JNIEXPORT jboolean JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_writeDeviceBuf
 
 		for (i = 0; i < len; i++) {
 			unsigned int rgb = body[i];
-			unsigned int now = from_16bit(p[i]);
-
-			if (rgb == now) continue;
-
-			updated = 1;
-
 			p[i] = to_16bit(rgb);
 		}
 		break;
@@ -231,18 +219,15 @@ JNIEXPORT jboolean JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_writeDeviceBuf
 	}
 
 	(*env)->ReleasePrimitiveArrayCritical(env, buf, body, 0);
-
-	return updated;
 }
 
-JNIEXPORT jboolean JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_readDeviceBuffer(
+JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_readDeviceBuffer(
 		JNIEnv *env, jobject obj, jlong jdi, jintArray buf) {
 
 	struct deviceInfo	*di = (struct deviceInfo *) (intptr_t) jdi;
 	int					i;
 	jsize				len = (*env)->GetArrayLength(env, buf);
 	unsigned int		*dummy = di->dummy;
-	int					updated = 0;
 
 
 	jint			*body = (*env)->GetPrimitiveArrayCritical(env, buf, 0);
@@ -253,10 +238,6 @@ JNIEXPORT jboolean JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_readDeviceBuff
 		// Dummy Device
 		for (i = 0; i < len; i++) {
 			unsigned int rgb = dummy[i];
-
-			if (body[i] == rgb)
-				continue;
-			updated = 1;
 			body[i] = rgb;
 		}
 		break;
@@ -271,10 +252,6 @@ JNIEXPORT jboolean JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_readDeviceBuff
 
 		for (i = 0; i < len; i++) {
 			unsigned int rgb = from_16bit(p[i]);
-
-			if (body[i] == rgb) continue;
-
-			updated = 1;
 			body[i] = rgb;
 		}
 		break;
@@ -285,6 +262,4 @@ JNIEXPORT jboolean JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_readDeviceBuff
 	}
 
 	(*env)->ReleasePrimitiveArrayCritical(env, buf, body, 0);
-
-	return updated;
 }
