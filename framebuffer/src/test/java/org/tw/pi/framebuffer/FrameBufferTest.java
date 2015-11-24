@@ -13,14 +13,12 @@ public class FrameBufferTest {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		FrameBuffer fb = new FrameBuffer(args[0]);
-		BufferedImage buf = fb.getBufferedImage();
+		FrameBufferImage fb = new FrameBufferImage(args[0]);
 		try {
-			Graphics g = buf.getGraphics();
+			Graphics g = fb.getGraphics();
 			for(int i = 0; i < Math.min(fb.getWidth(), fb.getHeight()) / 2; i++) {
 				g.setColor(new Color((int)(0xFFFFFF * Math.random())));
 				g.drawRect(i, i, fb.getWidth() - 2*i, fb.getHeight() - 2*i);
-				fb.write();
 			}
 		} finally {
 			fb.close();

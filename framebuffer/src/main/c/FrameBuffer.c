@@ -18,10 +18,8 @@
 #include <string.h>
 #include <fcntl.h>
 
-#ifdef __linux
 #include <linux/fb.h>
 #include <sys/ioctl.h>
-#endif
 
 #include <sys/mman.h>
 
@@ -42,13 +40,6 @@ struct deviceInfo {
 	unsigned int *previous;	// Last screen
 };
 
-// http://stackoverflow.com/questions/4770985/how-to-check-if-a-string-starts-with-another-string-in-c
-static int starts_with(const char *pre, const char *str) {
-	size_t lenpre = strlen(pre);
-	size_t lenstr = strlen(str);
-	return lenstr < lenpre ? 0 : strncmp(pre, str, lenpre) == 0;
-}
-
 JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_openDevice(
 		JNIEnv *env, jobject obj, jstring device) {
 
@@ -65,59 +56,46 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_openDevice(
 		(*env)->ReleaseStringUTFChars(env, device, s);
 
 	// Open the file for reading and writing
-	if (!starts_with("dummy_", di->deviceName)) {
+	struct fb_var_screeninfo vinfo;
+	struct fb_fix_screeninfo finfo;
 
-#ifndef __linux
-		//		printf("Error: Framebuffer only under linux, use previous device (dummy_220x440) instead %s\n",di->deviceName);
+	di->fbfd = open(di->deviceName, O_RDWR);
+	if (!di->fbfd) {
+		//			printf("Error: cannot open framebuffer device. %s\n", di->deviceName);
 		return (1);
-#else
-
-		struct fb_var_screeninfo vinfo;
-		struct fb_fix_screeninfo finfo;
-
-		di->fbfd = open(di->deviceName, O_RDWR);
-		if (!di->fbfd) {
-			//			printf("Error: cannot open framebuffer device. %s\n", di->deviceName);
-			return (1);
-		}
-		//		printf("The framebuffer device %s was opened successfully.\n", di->deviceName);
-
-		// Get fixed screen information
-		if (ioctl(di->fbfd, FBIOGET_FSCREENINFO, &finfo)) {
-			//			printf("Error reading fixed information.\n");
-			return (2);
-		}
-
-		// Get variable screen information
-		if (ioctl(di->fbfd, FBIOGET_VSCREENINFO, &vinfo)) {
-			//			printf("Error reading variable information.\n");
-			return (3);
-		}
-
-		di->width = vinfo.xres;
-		di->height = vinfo.yres;
-		di->bpp = vinfo.bits_per_pixel;
-		di->previous = malloc(di->width * di->height * sizeof(int));
-
-		//		printf("%dx%d, %d bpp  %ld bytes\n", vinfo.xres, vinfo.yres, vinfo.bits_per_pixel, (long) finfo.smem_len);
-
-		// map framebuffer to user memory
-		di->screensize = finfo.smem_len;
-
-		di->fbp = (char*) mmap(0, di->screensize, PROT_READ | PROT_WRITE,
-				MAP_SHARED, di->fbfd, 0);
-
-		if ((int) di->fbp == -1) {
-			//			printf("Failed to mmap.\n");
-			return (4);
-		}
-#endif
-	} else {
-		// Parse dummy_123x343
-		sscanf(di->deviceName, "dummy_%dx%d", &di->width, &di->height);
-		di->bpp = 0;
-		di->previous = malloc(di->width * di->height * sizeof(int));
 	}
+	//		printf("The framebuffer device %s was opened successfully.\n", di->deviceName);
+
+	// Get fixed screen information
+	if (ioctl(di->fbfd, FBIOGET_FSCREENINFO, &finfo)) {
+		//			printf("Error reading fixed information.\n");
+		return (2);
+	}
+
+	// Get variable screen information
+	if (ioctl(di->fbfd, FBIOGET_VSCREENINFO, &vinfo)) {
+		//			printf("Error reading variable information.\n");
+		return (3);
+	}
+
+	di->width = vinfo.xres;
+	di->height = vinfo.yres;
+	di->bpp = vinfo.bits_per_pixel;
+	di->previous = malloc(di->width * di->height * sizeof(int));
+
+	//		printf("%dx%d, %d bpp  %ld bytes\n", vinfo.xres, vinfo.yres, vinfo.bits_per_pixel, (long) finfo.smem_len);
+
+	// map framebuffer to user memory
+	di->screensize = finfo.smem_len;
+
+	di->fbp = (char*) mmap(0, di->screensize, PROT_READ | PROT_WRITE,
+			MAP_SHARED, di->fbfd, 0);
+
+	if ((int) di->fbp == -1) {
+		//			printf("Failed to mmap.\n");
+		return (4);
+	}
+
 	return (jlong) (intptr_t) di;
 }
 
@@ -177,60 +155,18 @@ static inline unsigned int from_16bit(unsigned short rgb) {
 	return (r << 16) + (g << 8) + b;
 }
 
-JNIEXPORT jboolean JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_writeDeviceBuffer(
-		JNIEnv *env, jobject obj, jlong jdi, jintArray buf) {
-
+JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_writeRGB
+(JNIEnv *env, jclass clazz, jlong ptr, jint idx, jint rgb) {
 	struct deviceInfo	*di = (struct deviceInfo *) (intptr_t) jdi;
-	int					i;
-	jsize				len = (*env)->GetArrayLength(env, buf);
-	unsigned int		*previous = di->previous;
-	int					updated = 0;
-
-
-	jint			*body = (*env)->GetPrimitiveArrayCritical(env, buf, 0);
 	unsigned short *p = (unsigned short *) di->fbp;
 
-	switch (di->bpp) {
-	case 0:
-		// Dummy Device
-		for (i = 0; i < len; i++) {
-			unsigned int rgb = body[i];
-
-			if (previous[i] == rgb)
-				continue;
-
-			updated = 1;
-			previous[i] = rgb;
-		}
-		break;
-	case 16:
-		// Comment from:
-		//		http://raspberrycompote.blogspot.de/2013/03/low-level-graphics-on-raspberry-pi-part_8.html
-		//
-		// The red value has 5 bits, so can be in the range 0-31, therefore divide the original 0-255
-		// value by 8. It is stored in the first 5 bits, so multiply by 2048 or shift 11 bits left.
-		// The green has 6 bits, so can be in the range 0-63, divide by 4, and multiply by 32 or shift
-		// 5 bits left. Finally the blue has 5 bits and is stored at the last bits, so no need to move.
-
-		for (i = 0; i < len; i++) {
-			unsigned int rgb = body[i];
-
-			if (previous[i] == rgb)
-				continue;
-
-			updated = 1;
-			previous[i] = rgb;
-			p[i] = to_16bit(rgb);
-		}
-		break;
-
-	default:
-		// do nothing
-		break;
-	}
-
-	(*env)->ReleasePrimitiveArrayCritical(env, buf, body, 0);
-
-	return updated;
+	p[idx] = to_16bit(rgb);
 }
 
+JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_readRGB
+(JNIEnv *env, jclass clazz, jlong ptr, jint idx) {
+	struct deviceInfo	*di = (struct deviceInfo *) (intptr_t) jdi;
+	unsigned short *p = (unsigned short *) di->fbp;
+
+	return from_16bit(p[idx]);
+}

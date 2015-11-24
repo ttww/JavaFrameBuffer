@@ -9,10 +9,6 @@
 
 package org.tw.pi.framebuffer;
 
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
-import java.io.Closeable;
-
 import org.tw.pi.NarSystem;
 
 
@@ -43,125 +39,19 @@ import org.tw.pi.NarSystem;
  * <p>
  * If you get the wrong colors, try the CONFIG_FB_ST7735_RGB_ORDER_REVERSED option !
  */
-public class FrameBuffer implements Closeable {
+public abstract class FrameBuffer {
 
-	private static final int FPS = 60;		// Max. update rate
-
-	private	String			deviceName;
-
-	private long			deviceInfo;		// Private data from JNI C
-
-	private	int				width,height;
-	private	int				bits;
-
-	private BufferedImage	img;
-	private int[]			imgBuffer;
-
-	// -----------------------------------------------------------------------------------------------------------------
-
-	private static native long		openDevice(String device);
-	private static native void		closeDevice(long di);
-	private static native int		getDeviceWidth(long di);
-	private static native int		getDeviceHeight(long di);
-	private static native int		getDeviceBitsPerPixel(long di);
-	private static native boolean	writeDeviceBuffer(long di,int[] buffer);
-
+	public static native long		openDevice(String device);
+	public static native void		closeDevice(long di);
+	public static native int		getDeviceWidth(long di);
+	public static native int		getDeviceHeight(long di);
+	public static native int		getDeviceBitsPerPixel(long di);
+	public static native void writeRGB(long di, int idx, int rgb);
+	public static native int readRGB(long di, int idx);
+	
 	static {
 		NarSystem.loadLibrary();
 	}
 
-	// -----------------------------------------------------------------------------------------------------------------
-
-	/**
-	 * Open the named frame buffer device.
-	 * 
-	 * @param deviceName	e.g. /dev/fb1 or dummy_320x200
-	 */
-	public FrameBuffer(String deviceName) {
-
-		this.deviceName = deviceName;
-
-		deviceInfo = openDevice(deviceName);
-
-		if (deviceInfo < 10) {
-			throw new IllegalArgumentException("Init. for frame buffer "+deviceName+" failed with error code "+deviceInfo);
-		}
-
-		this.width	= getDeviceWidth(deviceInfo);
-		this.height	= getDeviceHeight(deviceInfo);
-		this.bits = getDeviceBitsPerPixel(deviceInfo);
-
-		// We always use ARGB image type.
-		img			= new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-		imgBuffer	= ((DataBufferInt) img.getRaster().getDataBuffer()).getBankData()[0];
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------
-
-	// -----------------------------------------------------------------------------------------------------------------
-
-	
-
-	// -----------------------------------------------------------------------------------------------------------------
-
-	// -----------------------------------------------------------------------------------------------------------------
-	
-	/**
-	 * Update the screen from the BufferedImage.
-	 * 
-	 * @return	true if the screen was modified.
-	 */
-	public synchronized boolean write() {
-		if (deviceInfo == 0) return false;
-		return writeDeviceBuffer(deviceInfo,imgBuffer);
-	}
-	
-	
-	/**
-	 * Close the device.
-	 */
-	public synchronized void close() {
-		if(deviceInfo == 0)
-			return;
-		try {
-			closeDevice(deviceInfo);
-		} finally {
-			deviceInfo = 0;
-			img	= null;
-			imgBuffer = null;
-		}
-	}
-
-	// -----------------------------------------------------------------------------------------------------------------
-
-	
-
-	// -----------------------------------------------------------------------------------------------------------------
-	
-	// -----------------------------------------------------------------------------------------------------------------
-	
-	/**
-	 * Returns the BufferedImage for drawing. Anything your draw here is synchronized to the frame buffer.
-	 *
-	 * @return	BufferedImage of type ARGB.
-	 */
-	public BufferedImage getBufferedImage() {
-		return img;
-	}
-	public String getDeviceName() {
-		return deviceName;
-	}
-	
-	public int getWidth() {
-		return width;
-	}
-	
-	public int getHeight() {
-		return height;
-	}
-	
-	public int getBits() {
-		return bits;
-	}
-
-}	// of class
+	private FrameBuffer() {}
+}
