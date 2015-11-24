@@ -18,6 +18,8 @@ import java.awt.image.DataBufferInt;
 
 import javax.swing.JPanel;
 
+import org.tw.pi.NarSystem;
+
 
 /**
  * This class is the Java front end for a simple to use FrameBuffer driver.
@@ -62,15 +64,15 @@ public class FrameBuffer {
 
 	// -----------------------------------------------------------------------------------------------------------------
 
-	private native long		openDevice(String device);
-	private native void		closeDevice(long di);
-	private native int		getDeviceWidth(long di);
-	private native int		getDeviceHeight(long di);
-	private native int		getDeviceBitsPerPixel(long di);
-	private native boolean	updateDeviceBuffer(long di,int[] buffer);
+	private static native long		openDevice(String device);
+	private static native void		closeDevice(long di);
+	private static native int		getDeviceWidth(long di);
+	private static native int		getDeviceHeight(long di);
+	private static native int		getDeviceBitsPerPixel(long di);
+	private static native boolean	updateDeviceBuffer(long di,int[] buffer);
 
 	static {
-		System.loadLibrary("FrameBufferJNI"); // FrameBufferJNI.dll (Windows) or FrameBufferJNI.so (Unixes)
+		NarSystem.loadLibrary();
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------
