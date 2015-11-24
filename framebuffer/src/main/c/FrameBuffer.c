@@ -157,7 +157,7 @@ static inline unsigned int from_16bit(unsigned short rgb) {
 
 JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_writeRGB
 (JNIEnv *env, jclass clazz, jlong ptr, jint idx, jint rgb) {
-	struct deviceInfo	*di = (struct deviceInfo *) (intptr_t) jdi;
+	struct deviceInfo	*di = (struct deviceInfo *) (intptr_t) ptr;
 	unsigned short *p = (unsigned short *) di->fbp;
 
 	p[idx] = to_16bit(rgb);
@@ -165,7 +165,7 @@ JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_writeRGB
 
 JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_readRGB
 (JNIEnv *env, jclass clazz, jlong ptr, jint idx) {
-	struct deviceInfo	*di = (struct deviceInfo *) (intptr_t) jdi;
+	struct deviceInfo	*di = (struct deviceInfo *) (intptr_t) ptr;
 	unsigned short *p = (unsigned short *) di->fbp;
 
 	return from_16bit(p[idx]);
