@@ -19,15 +19,18 @@ public class FrameBufferImage extends BufferedImage {
 		return new FrameBufferRaster(dataBuffer);
 	}
 	
+	private FrameBufferDataBuffer dataBuffer;
+	
 	public FrameBufferImage(String fbdev) {
 		this(new FrameBufferDataBuffer(fbdev));
 	}
 	
 	public FrameBufferImage(FrameBufferDataBuffer dataBuffer) {
 		super(createColorModel(), createWritableRaster(dataBuffer), true, null);
+		this.dataBuffer = dataBuffer;
 	}
 	
 	public void close() {
-		((FrameBufferRaster) getData()).close();
+		dataBuffer.close();
 	}
 }

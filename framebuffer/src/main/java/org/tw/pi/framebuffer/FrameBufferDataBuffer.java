@@ -4,7 +4,7 @@ import java.awt.image.DataBuffer;
 
 public class FrameBufferDataBuffer extends DataBuffer {
 	
-	private static long open(String fbdev) {
+	static long open(String fbdev) {
 		long ptr = FrameBuffer.openDevice(fbdev);
 
 		if (ptr < 10) {
@@ -15,14 +15,25 @@ public class FrameBufferDataBuffer extends DataBuffer {
 	}
 
 	private long ptr;
+	private int w;
+	private int h;
 	
 	public FrameBufferDataBuffer(String fbdev) {
 		this(open(fbdev));
 	}
 	
-	FrameBufferDataBuffer(long ptr) {
-		super(TYPE_INT, ptr == -1 ? 1 : FrameBuffer.getDeviceWidth(ptr) * FrameBuffer.getDeviceHeight(ptr));
+	public FrameBufferDataBuffer(int w, int h) {
+		super(TYPE_INT, w * h);
+		this.ptr = -1;
+		this.w = w;
+		this.h = h;
+	}
+	
+	private FrameBufferDataBuffer(long ptr) {
+		super(TYPE_INT, FrameBuffer.getDeviceWidth(ptr) * FrameBuffer.getDeviceHeight(ptr));
 		this.ptr = ptr;
+		this.w = FrameBuffer.getDeviceWidth(ptr);
+		this.h = FrameBuffer.getDeviceHeight(ptr);
 	}
 	
 	@Override
@@ -52,18 +63,10 @@ public class FrameBufferDataBuffer extends DataBuffer {
 	}
 
 	public int getWidth() {
-		if(ptr == 0)
-			throw new IllegalStateException();
-		if(ptr == -1)
-			return 1;
-		return FrameBuffer.getDeviceWidth(ptr);
+		return w;
 	}
 	
 	public int getHeight() {
-		if(ptr == 0)
-			throw new IllegalStateException();
-		if(ptr == -1)
-			return 1;
-		return FrameBuffer.getDeviceHeight(ptr);
+		return h;
 	}
 }
