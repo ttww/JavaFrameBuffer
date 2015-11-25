@@ -16,19 +16,45 @@
 
 #include "org_tw_pi_framebuffer_FrameBuffers.h"
 
+/*
+ * struct to keep track of an open linux framebuffer
+ */
 static struct FrameBufferData {
+	/*
+	 * The path to the framebuffer, such as /dev/fb1
+	 */
 	char *deviceName;
+
+	/*
+	 * file descriptor for the framebuffer
+	 */
 	int fbfd;
 
+	/*
+	 * Width of the framebuffer
+	 */
 	int width;
+	/*
+	 * Height of the framebuffer
+	 */
 	int height;
+	/*
+	 * Color depth of the framebuffer
+	 */
 	int bpp;
 
+	/*
+	 * Size of the memory-mapped framebuffer device
+	 */
 	long int screensize;
 
 	char *fbp;
 };
 
+/*
+ * Open a linux framebuffer, returning a pointer to struct FrameBufferData,
+ * or an error code defined in FrameBuffers.java
+ */
 JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_openDevice0(
 		JNIEnv *env, jobject obj, jstring device) {
 
@@ -37,7 +63,8 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_openDevice0(
 	struct FrameBufferData *di;
 
 #ifndef __linux
-	return org_tw_pi_framebuffer_FrameBuffers_DUMMY;
+	// not supported on not linux
+	return org_tw_pi_framebuffer_FrameBuffers_ERR_NOT_SUPPORTED;
 #else
 
 	di = malloc(sizeof(*di));
@@ -97,6 +124,9 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_openDevice0(
 #endif
 }
 
+/*
+ * Close a framebuffer tracked by a pointer to struct FrameBufferData
+ */
 JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_closeDevice0(
 		JNIEnv *env, jobject obj, jlong jdi) {
 
@@ -112,6 +142,9 @@ JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_closeDevice0(
 	memset(di, 0, sizeof(*di));
 }
 
+/*
+ * Return the tracked framebuffer width by a pointer to struct FrameBufferData
+ */
 JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_getDeviceWidth0(
 		JNIEnv *env, jobject obj, jlong jdi) {
 
@@ -120,6 +153,9 @@ JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_getDeviceWidth0(
 	return di->width;
 }
 
+/*
+ * Return the tracked framebuffer height by a pointer to struct FrameBufferData
+ */
 JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_getDeviceHeight0(
 		JNIEnv *env, jobject obj, jlong jdi) {
 
@@ -128,6 +164,9 @@ JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_getDeviceHeight0(
 	return di->height;
 }
 
+/*
+ * Return the tracked framebuffer color depth by a pointer to struct FrameBufferData
+ */
 JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_getDeviceBitsPerPixel0(
 		JNIEnv *env, jobject obj, jlong jdi) {
 
@@ -136,6 +175,9 @@ JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_getDeviceBitsPerP
 	return di->bpp;
 }
 
+/*
+ * Write a pixel to a framebuffer
+ */
 JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_writeRGB0
 (JNIEnv *env, jclass clazz, jlong ptr, jint idx, jint rgb) {
 	struct FrameBufferData	*di = (struct FrameBufferData *) (intptr_t) ptr;
@@ -161,6 +203,9 @@ JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_writeRGB0
 	}
 }
 
+/*
+ * Read a pixel from a framebuffer
+ */
 JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_readRGB0
 (JNIEnv *env, jclass clazz, jlong ptr, jint idx) {
 	struct FrameBufferData	*di = (struct FrameBufferData *) (intptr_t) ptr;
