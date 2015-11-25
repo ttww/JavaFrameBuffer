@@ -1,15 +1,8 @@
-JavaFrameBuffer
-===============
+# org.tw.pi:framebuffer:0.1.0-SNAPSHOT
 
-Acces to Linux frame buffer devices from Java. E.g. for driving LCD SPI displays on the Raspberry Pi
+Access to Linux frame buffer devices from Java. E.g. for driving LCD SPI displays on the Raspberry Pi
 
-See the run.sh script for setting up the LD_LIBRARY path for the JNI part and the example test class.
-
-I didn't make a jar for on file, so you have to copy the Java file and the JNI to your Java project.
-
-If someone can compile the Windows JNI parts, please send me the script and the library, I will add it :-)
-
-"Do what ever you want to do with it" licence...
-
-Ciao,
-  Thomas
+Originally based off code from [ttww/JavaFrameBuffer](https://github.com/ttww/JavaFrameBuffer).
+Modified to build with Apache Maven, then API rewritten to provide direct-write access
+to linux framebuffers as java.awt.image.BuffferedImage
+ 
