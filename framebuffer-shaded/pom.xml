@@ -30,6 +30,12 @@
 							<createDependencyReducedPom>true</createDependencyReducedPom>
 							<shadedArtifactAttached>false</shadedArtifactAttached>
 							<createSourcesJar>true</createSourcesJar>
+							<relocations>
+								<relocation>
+									<pattern>org.scijava.nativelib</pattern>
+									<shadedPattern>org.tw.pi.framebuffer.org.scijava.nativelib</shadedPattern>
+								</relocation>
+							</relocations>
 						</configuration>
 					</execution>
 				</executions>
