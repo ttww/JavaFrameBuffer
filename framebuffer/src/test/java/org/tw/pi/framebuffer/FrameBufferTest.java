@@ -7,7 +7,7 @@ import org.junit.Test;
 public class FrameBufferTest {
 	@Test
 	public void testLoad() throws Exception {
-		Class.forName(FrameBuffer.class.getName());
+		Class.forName(FrameBuffers.class.getName());
 	}
 	
 	public static void main(String[] args) throws Exception {

@@ -27,7 +27,7 @@
 
 #include <jni.h>
 
-#include "org_tw_pi_framebuffer_FrameBuffer.h"
+#include "org_tw_pi_framebuffer_FrameBuffers.h"
 
 struct deviceInfo {
 	char *deviceName;				// Device-Name from Java ("/dev/fb1" or "dummy_240x180")...
@@ -42,7 +42,7 @@ struct deviceInfo {
 	char *fbp;						// MemoryMapped buffer
 };
 
-JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_openDevice(
+JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_openDevice(
 		JNIEnv *env, jobject obj, jstring device) {
 
 	jboolean isCopy;
@@ -50,7 +50,7 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_openDevice(
 	struct deviceInfo *di;
 
 #ifndef __linux
-	return org_tw_pi_framebuffer_FrameBuffer_DUMMY;
+	return org_tw_pi_framebuffer_FrameBuffers_DUMMY;
 #else
 
 	di = malloc(sizeof(*di));
@@ -69,7 +69,7 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_openDevice(
 	if (!di->fbfd) {
 		//			printf("Error: cannot open framebuffer device. %s\n", di->deviceName);
 		free(di->deviceName);
-		return org_tw_pi_framebuffer_FrameBuffer_ERR_OPEN;
+		return org_tw_pi_framebuffer_FrameBuffers_ERR_OPEN;
 	}
 	//		printf("The framebuffer device %s was opened successfully.\n", di->deviceName);
 
@@ -78,7 +78,7 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_openDevice(
 		//			printf("Error reading fixed information.\n");
 		close(di->fbfd);
 		free(di->deviceName);
-		return org_tw_pi_framebuffer_FrameBuffer_ERR_FIXED;
+		return org_tw_pi_framebuffer_FrameBuffers_ERR_FIXED;
 	}
 
 	// Get variable screen information
@@ -86,7 +86,7 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_openDevice(
 		//			printf("Error reading variable information.\n");
 		close(di->fbfd);
 		free(di->deviceName);
-		return org_tw_pi_framebuffer_FrameBuffer_ERR_VARIABLE;
+		return org_tw_pi_framebuffer_FrameBuffers_ERR_VARIABLE;
 	}
 
 	di->width = vinfo.xres;
@@ -96,7 +96,7 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_openDevice(
 	if(di->bpp != 16 && di->bpp != 24) {
 		close(di->fbfd);
 		free(di->deviceName);
-		return org_tw_pi_framebuffer_FrameBuffer_ERR_BITS;
+		return org_tw_pi_framebuffer_FrameBuffers_ERR_BITS;
 	}
 
 	//		printf("%dx%d, %d bpp  %ld bytes\n", vinfo.xres, vinfo.yres, vinfo.bits_per_pixel, (long) finfo.smem_len);
@@ -111,14 +111,14 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_openDevice(
 		//			printf("Failed to mmap.\n");
 		close(di->fbfd);
 		free(di->deviceName);
-		return org_tw_pi_framebuffer_FrameBuffer_ERR_MMAP;
+		return org_tw_pi_framebuffer_FrameBuffers_ERR_MMAP;
 	}
 
 	return (jlong) (intptr_t) di;
 #endif
 }
 
-JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_closeDevice(
+JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_closeDevice(
 		JNIEnv *env, jobject obj, jlong jdi) {
 
 	struct deviceInfo *di = (struct deviceInfo *) (intptr_t) jdi;
@@ -133,7 +133,7 @@ JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_closeDevice(
 	memset(di, 0, sizeof(*di)); // :-)
 }
 
-JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_getDeviceWidth(
+JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_getDeviceWidth(
 		JNIEnv *env, jobject obj, jlong jdi) {
 
 	struct deviceInfo *di = (struct deviceInfo *) (intptr_t) jdi;
@@ -141,7 +141,7 @@ JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_getDeviceWidth(
 	return di->width;
 }
 
-JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_getDeviceHeight(
+JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_getDeviceHeight(
 		JNIEnv *env, jobject obj, jlong jdi) {
 
 	struct deviceInfo *di = (struct deviceInfo *) (intptr_t) jdi;
@@ -149,7 +149,7 @@ JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_getDeviceHeight(
 	return di->height;
 }
 
-JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_getDeviceBitsPerPixel(
+JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_getDeviceBitsPerPixel(
 		JNIEnv *env, jobject obj, jlong jdi) {
 
 	struct deviceInfo *di = (struct deviceInfo *) (intptr_t) jdi;
@@ -157,7 +157,7 @@ JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_getDeviceBitsPerPi
 	return di->bpp;
 }
 
-JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_writeRGB
+JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_writeRGB
 (JNIEnv *env, jclass clazz, jlong ptr, jint idx, jint rgb) {
 	struct deviceInfo	*di = (struct deviceInfo *) (intptr_t) ptr;
 	if(di->bpp == 16) {
@@ -179,7 +179,7 @@ JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_writeRGB
 	}
 }
 
-JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_readRGB
+JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_readRGB
 (JNIEnv *env, jclass clazz, jlong ptr, jint idx) {
 	struct deviceInfo	*di = (struct deviceInfo *) (intptr_t) ptr;
 	if(di->bpp == 16) {

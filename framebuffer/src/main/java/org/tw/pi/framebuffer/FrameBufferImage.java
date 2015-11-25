@@ -3,14 +3,14 @@ package org.tw.pi.framebuffer;
 import java.awt.image.BufferedImage;
 
 public class FrameBufferImage extends BufferedImage {
-	private FrameBufferDataBuffer fb;
+	private FrameBuffer fb;
 	
 	public FrameBufferImage(String fbdev) {
-		this(new FrameBufferDataBuffer(fbdev));
+		this(new FrameBuffer(fbdev));
 	}
 	
-	public FrameBufferImage(FrameBufferDataBuffer fb) {
-		super(FrameBuffer.createColorModel(fb.getColorDepth()), new FrameBufferRaster(fb), true, null);
+	public FrameBufferImage(FrameBuffer fb) {
+		super(FrameBuffers.createColorModel(fb.getColorDepth()), new FrameBufferRaster(fb), true, null);
 		this.fb = fb;
 	}
 	
@@ -18,7 +18,7 @@ public class FrameBufferImage extends BufferedImage {
 		fb.close();
 	}
 	
-	public FrameBufferDataBuffer getFrameBuffer() {
+	public FrameBuffer getFrameBuffer() {
 		return fb;
 	}
 }
