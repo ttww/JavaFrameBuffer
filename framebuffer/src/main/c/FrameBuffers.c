@@ -1,16 +1,3 @@
-/*
- *	This file is the JNI C part of a Raspberry Pi FrameBuffer project.
- *
- *	Created 2013 by Thomas Welsch (ttww@gmx.de).
- *
- *	Do whatever you want to do with it :-)
- *
- *	This code transfers an Java BufferedImage ARGB data array to a FrameBuffer device
- *	(e.g. SPI-Displays like http://www.sainsmart.com/blog/ada/).
- *
- *	For testing purpose a previous device is supported (via the devicename "dummy_160x128" instead of "/dev/fb1").
- *
- **/
 
 #include <unistd.h>
 #include <stdio.h>
@@ -29,17 +16,17 @@
 
 #include "org_tw_pi_framebuffer_FrameBuffers.h"
 
-struct deviceInfo {
-	char *deviceName;				// Device-Name from Java ("/dev/fb1" or "dummy_240x180")...
-	int fbfd;						// File descriptor, 0 for previous devices
+static struct FrameBufferData {
+	char *deviceName;
+	int fbfd;
 
 	int width;
 	int height;
-	int bpp;						// BitsPerPixel, 0 for previous devices
+	int bpp;
 
-	long int screensize;			// Buffer size in bytes
+	long int screensize;
 
-	char *fbp;						// MemoryMapped buffer
+	char *fbp;
 };
 
 JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_openDevice0(
@@ -47,7 +34,7 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_openDevice0(
 
 	jboolean isCopy;
 
-	struct deviceInfo *di;
+	struct FrameBufferData *di;
 
 #ifndef __linux
 	return org_tw_pi_framebuffer_FrameBuffers_DUMMY;
@@ -67,15 +54,12 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_openDevice0(
 
 	di->fbfd = open(di->deviceName, O_RDWR);
 	if (!di->fbfd) {
-		//			printf("Error: cannot open framebuffer device. %s\n", di->deviceName);
 		free(di->deviceName);
 		return org_tw_pi_framebuffer_FrameBuffers_ERR_OPEN;
 	}
-	//		printf("The framebuffer device %s was opened successfully.\n", di->deviceName);
 
 	// Get fixed screen information
 	if (ioctl(di->fbfd, FBIOGET_FSCREENINFO, &finfo)) {
-		//			printf("Error reading fixed information.\n");
 		close(di->fbfd);
 		free(di->deviceName);
 		return org_tw_pi_framebuffer_FrameBuffers_ERR_FIXED;
@@ -83,7 +67,6 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_openDevice0(
 
 	// Get variable screen information
 	if (ioctl(di->fbfd, FBIOGET_VSCREENINFO, &vinfo)) {
-		//			printf("Error reading variable information.\n");
 		close(di->fbfd);
 		free(di->deviceName);
 		return org_tw_pi_framebuffer_FrameBuffers_ERR_VARIABLE;
@@ -99,16 +82,12 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_openDevice0(
 		return org_tw_pi_framebuffer_FrameBuffers_ERR_BITS;
 	}
 
-	//		printf("%dx%d, %d bpp  %ld bytes\n", vinfo.xres, vinfo.yres, vinfo.bits_per_pixel, (long) finfo.smem_len);
-
 	// map framebuffer to user memory
 	di->screensize = finfo.smem_len;
 
-	di->fbp = (char*) mmap(0, di->screensize, PROT_READ | PROT_WRITE,
-			MAP_SHARED, di->fbfd, 0);
+	di->fbp = (char*) mmap(0, di->screensize, PROT_READ | PROT_WRITE, MAP_SHARED, di->fbfd, 0);
 
 	if ((int) di->fbp == -1) {
-		//			printf("Failed to mmap.\n");
 		close(di->fbfd);
 		free(di->deviceName);
 		return org_tw_pi_framebuffer_FrameBuffers_ERR_MMAP;
@@ -121,7 +100,7 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_openDevice0(
 JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_closeDevice0(
 		JNIEnv *env, jobject obj, jlong jdi) {
 
-	struct deviceInfo *di = (struct deviceInfo *) (intptr_t) jdi;
+	struct FrameBufferData *di = (struct FrameBufferData *) (intptr_t) jdi;
 
 	free(di->deviceName);
 
@@ -130,13 +109,13 @@ JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_closeDevice0(
 		close(di->fbfd);
 	}
 
-	memset(di, 0, sizeof(*di)); // :-)
+	memset(di, 0, sizeof(*di));
 }
 
 JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_getDeviceWidth0(
 		JNIEnv *env, jobject obj, jlong jdi) {
 
-	struct deviceInfo *di = (struct deviceInfo *) (intptr_t) jdi;
+	struct FrameBufferData *di = (struct FrameBufferData *) (intptr_t) jdi;
 
 	return di->width;
 }
@@ -144,7 +123,7 @@ JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_getDeviceWidth0(
 JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_getDeviceHeight0(
 		JNIEnv *env, jobject obj, jlong jdi) {
 
-	struct deviceInfo *di = (struct deviceInfo *) (intptr_t) jdi;
+	struct FrameBufferData *di = (struct FrameBufferData *) (intptr_t) jdi;
 
 	return di->height;
 }
@@ -152,14 +131,14 @@ JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_getDeviceHeight0(
 JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_getDeviceBitsPerPixel0(
 		JNIEnv *env, jobject obj, jlong jdi) {
 
-	struct deviceInfo *di = (struct deviceInfo *) (intptr_t) jdi;
+	struct FrameBufferData *di = (struct FrameBufferData *) (intptr_t) jdi;
 
 	return di->bpp;
 }
 
 JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_writeRGB0
 (JNIEnv *env, jclass clazz, jlong ptr, jint idx, jint rgb) {
-	struct deviceInfo	*di = (struct deviceInfo *) (intptr_t) ptr;
+	struct FrameBufferData	*di = (struct FrameBufferData *) (intptr_t) ptr;
 	unsigned char *p = (unsigned char *) di->fbp;
 	unsigned int width;
 
@@ -184,7 +163,7 @@ JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_writeRGB0
 
 JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_readRGB0
 (JNIEnv *env, jclass clazz, jlong ptr, jint idx) {
-	struct deviceInfo	*di = (struct deviceInfo *) (intptr_t) ptr;
+	struct FrameBufferData	*di = (struct FrameBufferData *) (intptr_t) ptr;
 	unsigned char *p = (unsigned char *) di->fbp;
 	unsigned int width;
 
