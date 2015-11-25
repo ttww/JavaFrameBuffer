@@ -43,7 +43,7 @@ public abstract class FrameBuffers {
 		if(ptr == FrameBuffers.ERR_VARIABLE)
 			throw new RuntimeException("Error reading variable screen info for: " + fbdev);
 		if(ptr == FrameBuffers.ERR_BITS)
-			throw new RuntimeException("Invalid color depth (" + FrameBuffers.getDeviceBitsPerPixel0(ptr) + "), 16 and 24 supported, for: " + fbdev);
+			throw new RuntimeException("Invalid color depth (" + FrameBuffers.getDeviceBitsPerPixel0(ptr) + "); 8, 16, and 24 supported; for: " + fbdev);
 		if(ptr == FrameBuffers.ERR_MMAP)
 			throw new RuntimeException("Unable to mmap for: " + fbdev);
 
