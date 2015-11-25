@@ -5,8 +5,6 @@ import java.awt.image.SampleModel;
 import java.awt.image.WritableRaster;
 import java.io.Closeable;
 
-import org.tw.pi.framebuffer.FrameBuffers.ColorEndian;
-
 public class FrameBufferedRaster extends WritableRaster implements Closeable {
 
 	private FrameBuffer fb;

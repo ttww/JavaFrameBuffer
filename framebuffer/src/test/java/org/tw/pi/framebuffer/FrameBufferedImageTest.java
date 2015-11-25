@@ -2,7 +2,6 @@ package org.tw.pi.framebuffer;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.tw.pi.framebuffer.FrameBuffers.ColorEndian;
 
 public class FrameBufferedImageTest {
 	

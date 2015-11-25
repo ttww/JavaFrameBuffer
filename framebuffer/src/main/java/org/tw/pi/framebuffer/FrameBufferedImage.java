@@ -4,8 +4,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.io.Closeable;
 
-import org.tw.pi.framebuffer.FrameBuffers.ColorEndian;
-
 public class FrameBufferedImage extends BufferedImage implements Closeable {
 	private FrameBuffer fb;
 	
