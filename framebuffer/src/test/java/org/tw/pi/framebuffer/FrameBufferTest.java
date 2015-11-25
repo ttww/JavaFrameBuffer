@@ -11,7 +11,7 @@ public class FrameBufferTest {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		FrameBufferImage fb = new FrameBufferImage(args[0]);
+		FrameBufferedImage fb = new FrameBufferedImage(args[0]);
 		try {
 			Graphics g = fb.getGraphics();
 			int m = 0xff;

@@ -5,30 +5,30 @@ import java.awt.image.ColorModel;
 
 import org.tw.pi.framebuffer.FrameBuffers.ColorEndian;
 
-public class FrameBufferImage extends BufferedImage {
+public class FrameBufferedImage extends BufferedImage {
 	private FrameBuffer fb;
 	
-	public FrameBufferImage(String fbdev) {
+	public FrameBufferedImage(String fbdev) {
 		this(new FrameBuffer(fbdev));
 	}
 	
-	public FrameBufferImage(ColorEndian ce, String fbdev) {
+	public FrameBufferedImage(ColorEndian ce, String fbdev) {
 		this(ce, new FrameBuffer(fbdev));
 	}
 	
-	public FrameBufferImage(FrameBuffer fb) {
+	public FrameBufferedImage(FrameBuffer fb) {
 		this(ColorEndian.RGB, fb);
 	}
 	
-	public FrameBufferImage(ColorEndian ce, FrameBuffer fb) {
+	public FrameBufferedImage(ColorEndian ce, FrameBuffer fb) {
 		this(
-				new FrameBufferRaster(
+				new FrameBufferedRaster(
 						fb, 
 						ce.createSampleModel(fb.getWidth(), fb.getHeight(), fb.getColorDepth())), 
 				ce.createColorModel(fb.getColorDepth()));
 	}
 	
-	public FrameBufferImage(FrameBufferRaster raster, ColorModel colorModel) {
+	public FrameBufferedImage(FrameBufferedRaster raster, ColorModel colorModel) {
 		super(colorModel, raster, true, null);
 		fb = raster.getFrameBuffer();
 	}

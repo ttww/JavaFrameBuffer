@@ -110,7 +110,14 @@ public abstract class FrameBuffers {
 						ce.getComponentMask(bpp, ColorEndian.BLUE_COMPONENT),
 				});
 	}
+	
+	public static FrameBufferedImage openImage(String fbdev) {
+		return new FrameBufferedImage(fbdev);
+	}
 
+	public static FrameBufferedImage openImage(ColorEndian ce, String fbdev) {
+		return new FrameBufferedImage(ce, fbdev);
+	}
 
 	static native long openDevice0(String fbdev);
 	static native void closeDevice0(long ptr);

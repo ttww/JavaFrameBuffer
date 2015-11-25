@@ -6,19 +6,19 @@ import java.awt.image.WritableRaster;
 
 import org.tw.pi.framebuffer.FrameBuffers.ColorEndian;
 
-public class FrameBufferRaster extends WritableRaster {
+public class FrameBufferedRaster extends WritableRaster {
 
 	private FrameBuffer fb;
 	
-	public FrameBufferRaster(FrameBuffer fb) {
+	public FrameBufferedRaster(FrameBuffer fb) {
 		this(ColorEndian.RGB, fb);
 	}
 	
-	public FrameBufferRaster(ColorEndian ce, FrameBuffer fb) {
+	public FrameBufferedRaster(ColorEndian ce, FrameBuffer fb) {
 		this(fb, ce.createSampleModel(fb.getWidth(), fb.getHeight(), fb.getColorDepth()));
 	}
 
-	public FrameBufferRaster(FrameBuffer fb, SampleModel sampleModel) {
+	public FrameBufferedRaster(FrameBuffer fb, SampleModel sampleModel) {
 		super(sampleModel, fb, new Point(0,0));
 		this.fb = fb;
 	}
