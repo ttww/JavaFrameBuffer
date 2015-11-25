@@ -3,15 +3,16 @@ package org.tw.pi.framebuffer;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.io.Closeable;
+import java.io.IOException;
 
 public class FrameBufferedImage extends BufferedImage implements Closeable {
 	private FrameBuffer fb;
 	
-	public FrameBufferedImage(String fbdev) {
+	public FrameBufferedImage(String fbdev) throws IOException {
 		this(new FrameBuffer(fbdev));
 	}
 	
-	public FrameBufferedImage(ColorEndian ce, String fbdev) {
+	public FrameBufferedImage(ColorEndian ce, String fbdev) throws IOException {
 		this(ce, new FrameBuffer(fbdev));
 	}
 	

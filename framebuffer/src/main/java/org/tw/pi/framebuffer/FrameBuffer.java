@@ -2,6 +2,7 @@ package org.tw.pi.framebuffer;
 
 import java.awt.image.DataBuffer;
 import java.io.Closeable;
+import java.io.IOException;
 
 public class FrameBuffer extends DataBuffer implements Closeable {
 	public static final int DEFAULT_DUMMY_WIDTH = 320;
@@ -21,7 +22,7 @@ public class FrameBuffer extends DataBuffer implements Closeable {
 		this(FrameBuffers.DUMMY);
 	}
 	
-	public FrameBuffer(String fbdev) {
+	public FrameBuffer(String fbdev) throws IOException {
 		this(FrameBuffers.openDevice(fbdev));
 	}
 
