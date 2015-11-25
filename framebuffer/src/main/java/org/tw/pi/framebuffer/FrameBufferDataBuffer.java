@@ -18,22 +18,27 @@ public class FrameBufferDataBuffer extends DataBuffer {
 	private int w;
 	private int h;
 	
+	private int[] buf;
+	
 	public FrameBufferDataBuffer(String fbdev) {
 		this(open(fbdev));
 	}
 	
 	public FrameBufferDataBuffer(int w, int h) {
 		super(TYPE_INT, w * h);
-		this.ptr = -1;
+		ptr = -1;
 		this.w = w;
 		this.h = h;
+		buf = new int[w * h];
 	}
 	
 	private FrameBufferDataBuffer(long ptr) {
-		super(TYPE_INT, FrameBuffer.getDeviceWidth(ptr) * FrameBuffer.getDeviceHeight(ptr));
+		super(TYPE_INT, ptr == -1 ? 320*240 : FrameBuffer.getDeviceWidth(ptr) * FrameBuffer.getDeviceHeight(ptr));
 		this.ptr = ptr;
-		this.w = FrameBuffer.getDeviceWidth(ptr);
-		this.h = FrameBuffer.getDeviceHeight(ptr);
+		w = ptr == -1 ? 320 : FrameBuffer.getDeviceWidth(ptr);
+		h = ptr == -1 ? 240 : FrameBuffer.getDeviceHeight(ptr);
+		if(ptr == -1)
+			this.buf = new int[w * h];
 	}
 	
 	@Override
@@ -41,7 +46,7 @@ public class FrameBufferDataBuffer extends DataBuffer {
 		if(ptr == 0)
 			throw new IllegalStateException();
 		if(ptr == -1)
-			return 0;
+			return buf[i];
 		return FrameBuffer.readRGB(ptr, i);
 	}
 
@@ -50,8 +55,9 @@ public class FrameBufferDataBuffer extends DataBuffer {
 		if(ptr == 0)
 			throw new IllegalStateException();
 		if(ptr == -1)
-			return;
-		FrameBuffer.writeRGB(ptr, i, val);
+			buf[i] = val;
+		else
+			FrameBuffer.writeRGB(ptr, i, val);
 	}
 	
 	public void close() {

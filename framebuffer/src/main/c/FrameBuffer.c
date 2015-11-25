@@ -18,8 +18,10 @@
 #include <string.h>
 #include <fcntl.h>
 
+#ifdef __linux
 #include <linux/fb.h>
 #include <sys/ioctl.h>
+#endif
 
 #include <sys/mman.h>
 
@@ -46,6 +48,10 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_openDevice(
 	jboolean isCopy;
 
 	struct deviceInfo *di;
+
+#ifndef __linux
+	return -1;
+#else
 
 	di = malloc(sizeof(*di));
 	memset(di, 0, sizeof(*di));
@@ -97,6 +103,7 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_openDevice(
 	}
 
 	return (jlong) (intptr_t) di;
+#endif
 }
 
 JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_closeDevice(
