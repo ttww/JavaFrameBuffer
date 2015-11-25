@@ -7,13 +7,13 @@ public class FrameBufferImageTest {
 	
 	@Test
 	public void testCompatibility16bpp() {
-		Assert.assertTrue(FrameBuffers.createColorModel(16).isCompatibleSampleModel(FrameBuffers.createSampleModel(16, 1, 1)));
-		Assert.assertTrue(FrameBuffers.createColorModel(16).isCompatibleRaster(new FrameBufferRaster(new FrameBuffer(1,1))));
+		Assert.assertTrue(FrameBuffers.createColorModelRGB(16).isCompatibleSampleModel(FrameBuffers.createSampleModelRGB(1, 1, 16)));
+		Assert.assertTrue(FrameBuffers.createColorModelRGB(16).isCompatibleRaster(new FrameBufferRaster(new FrameBuffer(1, 1, 16))));
 	}
 
 	@Test
 	public void testCompatibility24bpp() {
-		Assert.assertTrue(FrameBuffers.createColorModel(24).isCompatibleSampleModel(FrameBuffers.createSampleModel(24, 1, 1)));
-		Assert.assertTrue(FrameBuffers.createColorModel(24).isCompatibleRaster(new FrameBufferRaster(new FrameBuffer(1,1))));
+		Assert.assertTrue(FrameBuffers.createColorModelRGB(24).isCompatibleSampleModel(FrameBuffers.createSampleModelRGB(1, 1, 24)));
+		Assert.assertTrue(FrameBuffers.createColorModelRGB(24).isCompatibleRaster(new FrameBufferRaster(new FrameBuffer(1, 1, 24))));
 	}
 }

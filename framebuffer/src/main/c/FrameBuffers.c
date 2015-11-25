@@ -93,7 +93,7 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_openDevice(
 	di->height = vinfo.yres;
 	di->bpp = vinfo.bits_per_pixel;
 
-	if(di->bpp != 16 && di->bpp != 24) {
+	if(di->bpp != 8 && di->bpp != 16 && di->bpp != 24) {
 		close(di->fbfd);
 		free(di->deviceName);
 		return org_tw_pi_framebuffer_FrameBuffers_ERR_BITS;
@@ -160,42 +160,51 @@ JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_getDeviceBitsPerP
 JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_writeRGB
 (JNIEnv *env, jclass clazz, jlong ptr, jint idx, jint rgb) {
 	struct deviceInfo	*di = (struct deviceInfo *) (intptr_t) ptr;
-	if(di->bpp == 16) {
-		unsigned short *p = (unsigned short *) di->fbp;
-		unsigned char r = (rgb >> 16) & 0x0ff;
-		unsigned char g = (rgb >> 8) & 0x0ff;
-		unsigned char b = (rgb) & 0x0ff;
+	unsigned char *p = (unsigned char *) di->fbp;
+	unsigned int width;
 
-		p[idx] = ((r / 8) << 11) + ((g / 4) << 5) + (b / 8);
-	} else if(di->bpp == 24) {
-		unsigned char *p = (unsigned char *) di->fbp;
-		unsigned char r = (unsigned char)(0xFF & (rgb >> 16));
-		unsigned char g = (unsigned char)(0xFF & (rgb >> 8));
-		unsigned char b = (unsigned char)(0xFF & rgb);
+	if(di->bpp == 8)
+		width = 1;
+	else if(di->bpp == 16)
+		width = 2;
+	else if(di->bpp == 24)
+		width = 3;
+	else
+		return;
 
-		p[3*idx] = r;
-		p[3*idx + 1] = g;
-		p[3*idx + 2] = b;
+	p += (width * idx);
+	p += (width - 1);
+	while(width > 0) {
+		*p = (unsigned char)(0xFF & rgb);
+		rgb = rgb >> 8;
+		width--;
+		p--;
 	}
 }
 
 JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_readRGB
 (JNIEnv *env, jclass clazz, jlong ptr, jint idx) {
 	struct deviceInfo	*di = (struct deviceInfo *) (intptr_t) ptr;
-	if(di->bpp == 16) {
-		unsigned short *p = (unsigned short *) di->fbp;
-		unsigned int r = 0xff & ((rgb >> 11) << 3);
-		unsigned int g = 0xff & ((rgb >> 5) << 2);
-		unsigned int b = 0xff & (rgb << 2);
+	unsigned char *p = (unsigned char *) di->fbp;
+	unsigned int width;
 
-		return (r << 16) + (g << 8) + b;
-	} else if(di->bpp == 24) {
-		unsigned char *p = (unsigned char *) di->fbp;
-		unsigned int r = p[3*idx];
-		unsigned int g = p[3*idx + 1];
-		unsigned int b = p[3*idx + 2];
-
-		return (r << 16) + (g << 8) + b;
-	} else
+	if(di->bpp == 8)
+		width = 1;
+	else if(di->bpp == 16)
+		width = 2;
+	else if(di->bpp == 24)
+		width = 3;
+	else
 		return -1;
+
+	unsigned int rgb = 0;
+
+	p += (width * idx);
+	while(width > 0) {
+		rgb = (rgb << 8) + *p;
+		width--;
+		p++;
+	}
+
+	return rgb;
 }

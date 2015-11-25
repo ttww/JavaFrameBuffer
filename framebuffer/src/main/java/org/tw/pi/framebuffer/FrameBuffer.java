@@ -3,9 +3,9 @@ package org.tw.pi.framebuffer;
 import java.awt.image.DataBuffer;
 
 public class FrameBuffer extends DataBuffer {
-	private static final int DEFAULT_DUMMY_WIDTH = 320;
-	private static final int DEFAULT_DUMMY_HEIGHT = 240;
-	private static final int DEFAULT_COLOR_DEPTH = 24;
+	public static final int DEFAULT_DUMMY_WIDTH = 320;
+	public static final int DEFAULT_DUMMY_HEIGHT = 240;
+	public static final int DEFAULT_COLOR_DEPTH = 24;
 	
 	private final long ptr;
 	private final int w;
@@ -41,15 +41,14 @@ public class FrameBuffer extends DataBuffer {
 	}
 
 	private FrameBuffer(long ptr, int w, int h, int bpp) {
-		super(TYPE_INT, w * h);
+		super(DataBuffer.TYPE_INT, w * h);
 		this.ptr = ptr;
 		this.w = w;
 		this.h = h;
+		this.bpp = bpp;
 		if(ptr == FrameBuffers.DUMMY) {
-			this.bpp = bpp;
 			this.dummy = new int[w * h];
 		} else {
-			this.bpp = FrameBuffers.getDeviceBitsPerPixel(ptr);
 			this.dummy = null;
 		}
 		this.closed = false;
