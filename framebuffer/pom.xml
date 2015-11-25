@@ -57,7 +57,7 @@
 	<parent>
 		<groupId>org.tw.pi</groupId>
 		<artifactId>framebuffer-parent</artifactId>
-		<version>0.0.1-esialb-SNAPSHOT</version>
+		<version>0.1.0-SNAPSHOT</version>
 		<relativePath>../framebuffer-parent</relativePath>
 	</parent>
 </project>
