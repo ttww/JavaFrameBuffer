@@ -20,8 +20,8 @@ public class FrameBufferDataBuffer extends DataBuffer {
 		this(open(fbdev));
 	}
 	
-	private FrameBufferDataBuffer(long ptr) {
-		super(TYPE_INT, FrameBuffer.getDeviceWidth(ptr) * FrameBuffer.getDeviceHeight(ptr));
+	FrameBufferDataBuffer(long ptr) {
+		super(TYPE_INT, ptr == -1 ? 1 : FrameBuffer.getDeviceWidth(ptr) * FrameBuffer.getDeviceHeight(ptr));
 		this.ptr = ptr;
 	}
 	
@@ -29,6 +29,8 @@ public class FrameBufferDataBuffer extends DataBuffer {
 	public int getElem(int bank, int i) {
 		if(ptr == 0)
 			throw new IllegalStateException();
+		if(ptr == -1)
+			return 0;
 		return FrameBuffer.readRGB(ptr, i);
 	}
 
@@ -36,12 +38,15 @@ public class FrameBufferDataBuffer extends DataBuffer {
 	public void setElem(int bank, int i, int val) {
 		if(ptr == 0)
 			throw new IllegalStateException();
+		if(ptr == -1)
+			return;
 		FrameBuffer.writeRGB(ptr, i, val);
 	}
 	
 	public void close() {
 		if(ptr != 0) {
-			FrameBuffer.closeDevice(ptr);
+			if(ptr != -1)
+				FrameBuffer.closeDevice(ptr);
 			ptr = 0;
 		}
 	}
@@ -49,12 +54,16 @@ public class FrameBufferDataBuffer extends DataBuffer {
 	public int getWidth() {
 		if(ptr == 0)
 			throw new IllegalStateException();
+		if(ptr == -1)
+			return 1;
 		return FrameBuffer.getDeviceWidth(ptr);
 	}
 	
 	public int getHeight() {
 		if(ptr == 0)
 			throw new IllegalStateException();
+		if(ptr == -1)
+			return 1;
 		return FrameBuffer.getDeviceHeight(ptr);
 	}
 }
