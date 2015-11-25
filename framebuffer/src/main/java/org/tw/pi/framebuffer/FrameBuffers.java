@@ -19,12 +19,12 @@ import java.awt.image.SinglePixelPackedSampleModel;
 import org.tw.pi.NarSystem;
 
 public abstract class FrameBuffers {
-	public static final long DUMMY = -1;
-	public static final long ERR_OPEN = 1;
-	public static final long ERR_FIXED = 2;
-	public static final long ERR_VARIABLE = 3;
-	public static final long ERR_BITS = 4;
-	public static final long ERR_MMAP = 5;
+	static final long DUMMY = -1;
+	static final long ERR_OPEN = 1;
+	static final long ERR_FIXED = 2;
+	static final long ERR_VARIABLE = 3;
+	static final long ERR_BITS = 4;
+	static final long ERR_MMAP = 5;
 
 	public static enum ColorEndian {
 		RGB(new int[]{
@@ -55,9 +55,9 @@ public abstract class FrameBuffers {
 		}),
 		;
 
-		public static final int RED = 0;
-		public static final int GREEN = 1;
-		public static final int BLUE = 2;
+		public static final int RED_COMPONENT = 0;
+		public static final int GREEN_COMPONENT = 1;
+		public static final int BLUE_COMPONENT = 2;
 		
 		private int[] mask8;
 		private int[] mask16;
@@ -69,11 +69,11 @@ public abstract class FrameBuffers {
 			this.mask24 = mask24;
 		}
 		
-		public int mask(int bpp, int color) {
+		public int getComponentMask(int bpp, int component) {
 			switch(bpp) {
-			case 8: return mask8[color];
-			case 16: return mask16[color];
-			case 24: return mask24[color];
+			case 8: return mask8[component];
+			case 16: return mask16[component];
+			case 24: return mask24[component];
 			}
 			throw new IllegalArgumentException("Invalid color depth for " + this + ": " + bpp);
 		}
@@ -90,9 +90,9 @@ public abstract class FrameBuffers {
 		return new DirectColorModel(
 				ColorSpace.getInstance(ColorSpace.CS_sRGB),
 				bpp,
-				ce.mask(bpp, ColorEndian.RED),
-				ce.mask(bpp, ColorEndian.GREEN),
-				ce.mask(bpp, ColorEndian.BLUE),
+				ce.getComponentMask(bpp, ColorEndian.RED_COMPONENT),
+				ce.getComponentMask(bpp, ColorEndian.GREEN_COMPONENT),
+				ce.getComponentMask(bpp, ColorEndian.BLUE_COMPONENT),
 				0x0,
 				false,
 				DataBuffer.TYPE_INT);
@@ -105,25 +105,25 @@ public abstract class FrameBuffers {
 				w, 
 				h, 
 				new int[] {
-						ce.mask(bpp, ColorEndian.RED),
-						ce.mask(bpp, ColorEndian.GREEN),
-						ce.mask(bpp, ColorEndian.BLUE),
+						ce.getComponentMask(bpp, ColorEndian.RED_COMPONENT),
+						ce.getComponentMask(bpp, ColorEndian.GREEN_COMPONENT),
+						ce.getComponentMask(bpp, ColorEndian.BLUE_COMPONENT),
 				});
 	}
 
 
-	public static native long openDevice(String fbdev);
-	public static native void closeDevice(long ptr);
+	static native long openDevice0(String fbdev);
+	static native void closeDevice0(long ptr);
 
-	public static native int getDeviceWidth(long ptr);
-	public static native int getDeviceHeight(long ptr);
-	public static native int getDeviceBitsPerPixel(long ptr);
+	static native int getDeviceWidth0(long ptr);
+	static native int getDeviceHeight0(long ptr);
+	static native int getDeviceBitsPerPixel0(long ptr);
 
-	public static native void writeRGB(long ptr, int idx, int rgb);
-	public static native int readRGB(long ptr, int idx);
+	static native void writeRGB0(long ptr, int idx, int rgb);
+	static native int readRGB0(long ptr, int idx);
 
-	public static long open(String fbdev) {
-		long ptr = FrameBuffers.openDevice(fbdev);
+	static long openDevice(String fbdev) {
+		long ptr = FrameBuffers.openDevice0(fbdev);
 
 		if(ptr == FrameBuffers.DUMMY)
 			return FrameBuffers.DUMMY;
@@ -134,7 +134,7 @@ public abstract class FrameBuffers {
 		if(ptr == FrameBuffers.ERR_VARIABLE)
 			throw new RuntimeException("Error reading variable screen info for: " + fbdev);
 		if(ptr == FrameBuffers.ERR_BITS)
-			throw new RuntimeException("Invalid color depth (" + FrameBuffers.getDeviceBitsPerPixel(ptr) + "), 16 and 24 supported, for: " + fbdev);
+			throw new RuntimeException("Invalid color depth (" + FrameBuffers.getDeviceBitsPerPixel0(ptr) + "), 16 and 24 supported, for: " + fbdev);
 		if(ptr == FrameBuffers.ERR_MMAP)
 			throw new RuntimeException("Unable to mmap for: " + fbdev);
 

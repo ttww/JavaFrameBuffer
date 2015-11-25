@@ -42,7 +42,7 @@ struct deviceInfo {
 	char *fbp;						// MemoryMapped buffer
 };
 
-JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_openDevice(
+JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_openDevice0(
 		JNIEnv *env, jobject obj, jstring device) {
 
 	jboolean isCopy;
@@ -118,7 +118,7 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_openDevice(
 #endif
 }
 
-JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_closeDevice(
+JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_closeDevice0(
 		JNIEnv *env, jobject obj, jlong jdi) {
 
 	struct deviceInfo *di = (struct deviceInfo *) (intptr_t) jdi;
@@ -133,7 +133,7 @@ JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_closeDevice(
 	memset(di, 0, sizeof(*di)); // :-)
 }
 
-JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_getDeviceWidth(
+JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_getDeviceWidth0(
 		JNIEnv *env, jobject obj, jlong jdi) {
 
 	struct deviceInfo *di = (struct deviceInfo *) (intptr_t) jdi;
@@ -141,7 +141,7 @@ JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_getDeviceWidth(
 	return di->width;
 }
 
-JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_getDeviceHeight(
+JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_getDeviceHeight0(
 		JNIEnv *env, jobject obj, jlong jdi) {
 
 	struct deviceInfo *di = (struct deviceInfo *) (intptr_t) jdi;
@@ -149,7 +149,7 @@ JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_getDeviceHeight(
 	return di->height;
 }
 
-JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_getDeviceBitsPerPixel(
+JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_getDeviceBitsPerPixel0(
 		JNIEnv *env, jobject obj, jlong jdi) {
 
 	struct deviceInfo *di = (struct deviceInfo *) (intptr_t) jdi;
@@ -157,7 +157,7 @@ JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_getDeviceBitsPerP
 	return di->bpp;
 }
 
-JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_writeRGB
+JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_writeRGB0
 (JNIEnv *env, jclass clazz, jlong ptr, jint idx, jint rgb) {
 	struct deviceInfo	*di = (struct deviceInfo *) (intptr_t) ptr;
 	unsigned char *p = (unsigned char *) di->fbp;
@@ -182,7 +182,7 @@ JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_writeRGB
 	}
 }
 
-JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_readRGB
+JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_readRGB0
 (JNIEnv *env, jclass clazz, jlong ptr, jint idx) {
 	struct deviceInfo	*di = (struct deviceInfo *) (intptr_t) ptr;
 	unsigned char *p = (unsigned char *) di->fbp;

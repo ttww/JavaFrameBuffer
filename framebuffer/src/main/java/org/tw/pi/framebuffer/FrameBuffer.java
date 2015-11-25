@@ -21,7 +21,7 @@ public class FrameBuffer extends DataBuffer {
 	}
 	
 	public FrameBuffer(String fbdev) {
-		this(FrameBuffers.open(fbdev));
+		this(FrameBuffers.openDevice(fbdev));
 	}
 
 	public FrameBuffer(int w, int h, int bpp) {
@@ -35,9 +35,9 @@ public class FrameBuffer extends DataBuffer {
 	private FrameBuffer(long ptr) {
 		this(
 				ptr,
-				(ptr == FrameBuffers.DUMMY ? DEFAULT_DUMMY_WIDTH : FrameBuffers.getDeviceWidth(ptr)), 
-				(ptr == FrameBuffers.DUMMY ? DEFAULT_DUMMY_HEIGHT : FrameBuffers.getDeviceHeight(ptr)),
-				(ptr == FrameBuffers.DUMMY ? DEFAULT_COLOR_DEPTH : FrameBuffers.getDeviceBitsPerPixel(ptr)));
+				(ptr == FrameBuffers.DUMMY ? DEFAULT_DUMMY_WIDTH : FrameBuffers.getDeviceWidth0(ptr)), 
+				(ptr == FrameBuffers.DUMMY ? DEFAULT_DUMMY_HEIGHT : FrameBuffers.getDeviceHeight0(ptr)),
+				(ptr == FrameBuffers.DUMMY ? DEFAULT_COLOR_DEPTH : FrameBuffers.getDeviceBitsPerPixel0(ptr)));
 	}
 
 	private FrameBuffer(long ptr, int w, int h, int bpp) {
@@ -62,7 +62,7 @@ public class FrameBuffer extends DataBuffer {
 		if(ptr == FrameBuffers.DUMMY)
 			val = dummy[i];
 		else
-			val = FrameBuffers.readRGB(ptr, i);
+			val = FrameBuffers.readRGB0(ptr, i);
 		return val & 0x00FFFFFF;
 	}
 
@@ -74,13 +74,13 @@ public class FrameBuffer extends DataBuffer {
 		if(ptr == FrameBuffers.DUMMY)
 			dummy[i] = val;
 		else
-			FrameBuffers.writeRGB(ptr, i, val);
+			FrameBuffers.writeRGB0(ptr, i, val);
 	}
 
 	public void close() {
 		if(!closed) {
 			if(ptr != FrameBuffers.DUMMY)
-				FrameBuffers.closeDevice(ptr);
+				FrameBuffers.closeDevice0(ptr);
 			closed = true;
 		}
 	}
