@@ -11,10 +11,10 @@ public class FrameBufferRaster extends WritableRaster {
 	private FrameBuffer fb;
 	
 	public FrameBufferRaster(FrameBuffer fb) {
-		this(fb, ColorEndian.RGB);
+		this(ColorEndian.RGB, fb);
 	}
 	
-	public FrameBufferRaster(FrameBuffer fb, ColorEndian ce) {
+	public FrameBufferRaster(ColorEndian ce, FrameBuffer fb) {
 		this(fb, ce.createSampleModel(fb.getWidth(), fb.getHeight(), fb.getColorDepth()));
 	}
 

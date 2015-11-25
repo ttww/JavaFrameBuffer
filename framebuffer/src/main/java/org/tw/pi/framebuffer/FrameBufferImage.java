@@ -12,15 +12,15 @@ public class FrameBufferImage extends BufferedImage {
 		this(new FrameBuffer(fbdev));
 	}
 	
-	public FrameBufferImage(String fbdev, ColorEndian ce) {
-		this(new FrameBuffer(fbdev), ce);
+	public FrameBufferImage(ColorEndian ce, String fbdev) {
+		this(ce, new FrameBuffer(fbdev));
 	}
 	
 	public FrameBufferImage(FrameBuffer fb) {
-		this(fb, ColorEndian.RGB);
+		this(ColorEndian.RGB, fb);
 	}
 	
-	public FrameBufferImage(FrameBuffer fb, ColorEndian ce) {
+	public FrameBufferImage(ColorEndian ce, FrameBuffer fb) {
 		this(
 				new FrameBufferRaster(
 						fb, 

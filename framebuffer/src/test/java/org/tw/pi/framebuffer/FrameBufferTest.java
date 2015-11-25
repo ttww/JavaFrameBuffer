@@ -14,7 +14,7 @@ public class FrameBufferTest {
 		FrameBufferImage fb = new FrameBufferImage(args[0]);
 		try {
 			Graphics g = fb.getGraphics();
-			int m = 7;
+			int m = 0xff;
 			for(int i = 0; i < Math.min(fb.getWidth(), fb.getHeight()) / 2; i++) {
 				g.setColor(new Color(m));
 				g.drawRect(i, i, fb.getWidth() - 2*i, fb.getHeight() - 2*i);
