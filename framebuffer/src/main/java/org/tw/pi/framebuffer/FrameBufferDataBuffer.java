@@ -3,76 +3,98 @@ package org.tw.pi.framebuffer;
 import java.awt.image.DataBuffer;
 
 public class FrameBufferDataBuffer extends DataBuffer {
+	private static final int DEFAULT_DUMMY_WIDTH = 320;
+	private static final int DEFAULT_DUMMY_HEIGHT = 240;
+	private static final int DEFAULT_COLOR_DEPTH = 24;
 	
-	static long open(String fbdev) {
-		long ptr = FrameBuffer.openDevice(fbdev);
+	private final long ptr;
+	private final int w;
+	private final int h;
+	private final int bpp;
 
-		if (ptr < 10) {
-			throw new IllegalArgumentException("Init. for frame buffer " + fbdev + " failed with error code " + ptr);
-		}
-		
-		return ptr;
+	private final int[] dummy;
+	
+	private boolean closed;
+
+	public FrameBufferDataBuffer() {
+		this(FrameBuffer.DUMMY);
 	}
-
-	private long ptr;
-	private int w;
-	private int h;
-	
-	private int[] buf;
 	
 	public FrameBufferDataBuffer(String fbdev) {
-		this(open(fbdev));
+		this(FrameBuffer.open(fbdev));
 	}
-	
+
+	public FrameBufferDataBuffer(int w, int h, int bpp) {
+		this(FrameBuffer.DUMMY, w, h, bpp);
+	}
+
 	public FrameBufferDataBuffer(int w, int h) {
+		this(FrameBuffer.DUMMY, w, h, DEFAULT_COLOR_DEPTH);
+	}
+
+	private FrameBufferDataBuffer(long ptr) {
+		this(
+				ptr,
+				(ptr == FrameBuffer.DUMMY ? DEFAULT_DUMMY_WIDTH : FrameBuffer.getDeviceWidth(ptr)), 
+				(ptr == FrameBuffer.DUMMY ? DEFAULT_DUMMY_HEIGHT : FrameBuffer.getDeviceHeight(ptr)),
+				(ptr == FrameBuffer.DUMMY ? DEFAULT_COLOR_DEPTH : FrameBuffer.getDeviceBitsPerPixel(ptr)));
+	}
+
+	private FrameBufferDataBuffer(long ptr, int w, int h, int bpp) {
 		super(TYPE_INT, w * h);
-		ptr = -1;
+		this.ptr = ptr;
 		this.w = w;
 		this.h = h;
-		buf = new int[w * h];
+		if(ptr == FrameBuffer.DUMMY) {
+			this.bpp = bpp;
+			this.dummy = new int[w * h];
+		} else {
+			this.bpp = FrameBuffer.getDeviceBitsPerPixel(ptr);
+			this.dummy = null;
+		}
+		this.closed = false;
 	}
-	
-	private FrameBufferDataBuffer(long ptr) {
-		super(TYPE_INT, ptr == -1 ? 320*240 : FrameBuffer.getDeviceWidth(ptr) * FrameBuffer.getDeviceHeight(ptr));
-		this.ptr = ptr;
-		w = ptr == -1 ? 320 : FrameBuffer.getDeviceWidth(ptr);
-		h = ptr == -1 ? 240 : FrameBuffer.getDeviceHeight(ptr);
-		if(ptr == -1)
-			this.buf = new int[w * h];
-	}
-	
+
 	@Override
 	public int getElem(int bank, int i) {
-		if(ptr == 0)
+		if(closed)
 			throw new IllegalStateException();
-		if(ptr == -1)
-			return buf[i];
-		return FrameBuffer.readRGB(ptr, i);
+		int val;
+		if(ptr == FrameBuffer.DUMMY)
+			val = dummy[i];
+		else
+			val = FrameBuffer.readRGB(ptr, i);
+		return val & 0x00FFFFFF;
 	}
 
 	@Override
 	public void setElem(int bank, int i, int val) {
-		if(ptr == 0)
+		val = val & 0x00FFFFFF;
+		if(closed)
 			throw new IllegalStateException();
-		if(ptr == -1)
-			buf[i] = val;
+		if(ptr == FrameBuffer.DUMMY)
+			dummy[i] = val;
 		else
 			FrameBuffer.writeRGB(ptr, i, val);
 	}
-	
+
 	public void close() {
-		if(ptr != 0) {
-			if(ptr != -1)
+		if(!closed) {
+			if(ptr != FrameBuffer.DUMMY)
 				FrameBuffer.closeDevice(ptr);
-			ptr = 0;
+			closed = true;
 		}
 	}
 
 	public int getWidth() {
 		return w;
 	}
-	
+
 	public int getHeight() {
 		return h;
+	}
+	
+	public int getColorDepth() {
+		return bpp;
 	}
 }

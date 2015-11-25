@@ -2,8 +2,6 @@ package org.tw.pi.framebuffer;
 
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.image.BufferedImage;
-
 import org.junit.Test;
 
 public class FrameBufferTest {

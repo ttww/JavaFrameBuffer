@@ -9,49 +9,99 @@
 
 package org.tw.pi.framebuffer;
 
+import java.awt.image.ColorModel;
+import java.awt.image.DataBuffer;
+import java.awt.image.DirectColorModel;
+import java.awt.image.SampleModel;
+import java.awt.image.SinglePixelPackedSampleModel;
+
 import org.tw.pi.NarSystem;
 
+public abstract class FrameBuffer {
+	public static final long DUMMY = -1;
+	static final long ERR_OPEN = 1;
+	static final long ERR_FIXED = 2;
+	static final long ERR_VARIABLE = 3;
+	static final long ERR_BITS = 4;
+	static final long ERR_MMAP = 5;
 
-/**
- * This class is the Java front end for a simple to use FrameBuffer driver.
- * Simple draw in the BufferedImage and all changes are transfered to the FrameBuffer device.<p>
- * For testing purpose a dummy device is supported (via the devicename "dummy_160x128" instead of "/dev/fb1").<p<
- * The Java process needs write access to the frame buffer device file.
- * <p>
- * It's used to drive small bit mapped screens connected via SPI, see
- * http://www.sainsmart.com/blog/ada/
- * <p>
- * <p>
- * My Linux kernel config for SPI display was:
- * <pre>
- * CONFIG_FB_ST7735=y
- * CONFIG_FB_ST7735_PANEL_TYPE_RED_TAB=y
- * CONFIG_FB_ST7735_RGB_ORDER_REVERSED=y
- * CONFIG_FB_ST7735_MAP=y
- * CONFIG_FB_ST7735_MAP_RST_GPIO=25
- * CONFIG_FB_ST7735_MAP_DC_GPIO=24
- * CONFIG_FB_ST7735_MAP_SPI_BUS_NUM=0
- * CONFIG_FB_ST7735_MAP_SPI_BUS_CS=0
- * CONFIG_FB_ST7735_MAP_SPI_BUS_SPEED=16000000
- * CONFIG_FB_ST7735_MAP_SPI_BUS_MODE=0
- * </pre>
- * CONFIG_FB_ST7735_MAP_SPI_BUS_SPEED gives faster updates :-)
- * <p>
- * If you get the wrong colors, try the CONFIG_FB_ST7735_RGB_ORDER_REVERSED option !
- */
-abstract class FrameBuffer {
+	static native long openDevice(String fbdev);
+	static native void closeDevice(long ptr);
 
-	static native long		openDevice(String device);
-	static native void		closeDevice(long di);
-	static native int		getDeviceWidth(long di);
-	static native int		getDeviceHeight(long di);
-	static native int		getDeviceBitsPerPixel(long di);
-	static native void writeRGB(long di, int idx, int rgb);
-	static native int readRGB(long di, int idx);
-	
+	static native int getDeviceWidth(long ptr);
+	static native int getDeviceHeight(long ptr);
+	static native int getDeviceBitsPerPixel(long ptr);
+
+	static native void writeRGB(long ptr, int idx, int rgb);
+	static native int readRGB(long ptr, int idx);
+
 	static {
 		NarSystem.loadLibrary();
 	}
+	
+	public static long open(String fbdev) {
+		long ptr = FrameBuffer.openDevice(fbdev);
 
-	private FrameBuffer() {}
+		if(ptr == FrameBuffer.DUMMY)
+			return FrameBuffer.DUMMY;
+		if(ptr == FrameBuffer.ERR_OPEN)
+			throw new RuntimeException("Unable to open framebuffer device: " + fbdev);
+		if(ptr == FrameBuffer.ERR_FIXED)
+			throw new RuntimeException("Error reading fixed screen info for: " + fbdev);
+		if(ptr == FrameBuffer.ERR_VARIABLE)
+			throw new RuntimeException("Error reading variable screen info for: " + fbdev);
+		if(ptr == FrameBuffer.ERR_BITS)
+			throw new RuntimeException("Invalid color depth (" + FrameBuffer.getDeviceBitsPerPixel(ptr) + "), 16 and 24 supported, for: " + fbdev);
+		if(ptr == FrameBuffer.ERR_MMAP)
+			throw new RuntimeException("Unable to mmap for: " + fbdev);
+
+		return ptr;
+	}
+
+	public static ColorModel createColorModel(int bpp) {
+		if(bpp == 16) {
+			return new DirectColorModel(16,
+	                0x00f80000,   // Red
+	                0x0000fc00,   // Green
+	                0x000000f8,   // Blue
+	                0x0           // Alpha
+	                );
+		} else if(bpp == 24) {
+			return new DirectColorModel(24,
+	                0x00ff0000,   // Red
+	                0x0000ff00,   // Green
+	                0x000000ff,   // Blue
+	                0x0           // Alpha
+	                );
+		} else
+			throw new IllegalArgumentException("Invalid framebuffer color depth:" + bpp);
+	}
+
+	public static SampleModel createSampleModel(int bpp, int w, int h) {
+		if(bpp == 16) {
+			return new SinglePixelPackedSampleModel(
+					DataBuffer.TYPE_INT, 
+					w, 
+					h, 
+					new int[] {
+			                0x00f80000,   // Red
+			                0x0000fc00,   // Green
+			                0x000000f8,   // Blue
+					});
+		} else if(bpp == 24) {
+			return new SinglePixelPackedSampleModel(
+					DataBuffer.TYPE_INT, 
+					w, 
+					h, 
+					new int[] {
+			                0x00ff0000,   // Red
+			                0x0000ff00,   // Green
+			                0x000000ff,   // Blue
+					});
+		} else
+			throw new IllegalArgumentException("Invalid framebuffer color depth:" + bpp);
+	}
+
+	private FrameBuffer() {
+	}
 }

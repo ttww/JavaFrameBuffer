@@ -27,6 +27,8 @@
 
 #include <jni.h>
 
+#include "org_tw_pi_framebuffer_FrameBuffer.h"
+
 struct deviceInfo {
 	char *deviceName;				// Device-Name from Java ("/dev/fb1" or "dummy_240x180")...
 	int fbfd;						// File descriptor, 0 for previous devices
@@ -38,8 +40,6 @@ struct deviceInfo {
 	long int screensize;			// Buffer size in bytes
 
 	char *fbp;						// MemoryMapped buffer
-
-	unsigned int *previous;	// Last screen
 };
 
 JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_openDevice(
@@ -50,7 +50,7 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_openDevice(
 	struct deviceInfo *di;
 
 #ifndef __linux
-	return -1;
+	return org_tw_pi_framebuffer_FrameBuffer_DUMMY;
 #else
 
 	di = malloc(sizeof(*di));
@@ -68,26 +68,36 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_openDevice(
 	di->fbfd = open(di->deviceName, O_RDWR);
 	if (!di->fbfd) {
 		//			printf("Error: cannot open framebuffer device. %s\n", di->deviceName);
-		return (1);
+		free(di->deviceName);
+		return org_tw_pi_framebuffer_FrameBuffer_ERR_OPEN;
 	}
 	//		printf("The framebuffer device %s was opened successfully.\n", di->deviceName);
 
 	// Get fixed screen information
 	if (ioctl(di->fbfd, FBIOGET_FSCREENINFO, &finfo)) {
 		//			printf("Error reading fixed information.\n");
-		return (2);
+		close(di->fbfd);
+		free(di->deviceName);
+		return org_tw_pi_framebuffer_FrameBuffer_ERR_FIXED;
 	}
 
 	// Get variable screen information
 	if (ioctl(di->fbfd, FBIOGET_VSCREENINFO, &vinfo)) {
 		//			printf("Error reading variable information.\n");
-		return (3);
+		close(di->fbfd);
+		free(di->deviceName);
+		return org_tw_pi_framebuffer_FrameBuffer_ERR_VARIABLE;
 	}
 
 	di->width = vinfo.xres;
 	di->height = vinfo.yres;
 	di->bpp = vinfo.bits_per_pixel;
-	di->previous = malloc(di->width * di->height * sizeof(int));
+
+	if(di->bpp != 16 && di->bpp != 24) {
+		close(di->fbfd);
+		free(di->deviceName);
+		return org_tw_pi_framebuffer_FrameBuffer_ERR_BITS;
+	}
 
 	//		printf("%dx%d, %d bpp  %ld bytes\n", vinfo.xres, vinfo.yres, vinfo.bits_per_pixel, (long) finfo.smem_len);
 
@@ -99,7 +109,9 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_openDevice(
 
 	if ((int) di->fbp == -1) {
 		//			printf("Failed to mmap.\n");
-		return (4);
+		close(di->fbfd);
+		free(di->deviceName);
+		return org_tw_pi_framebuffer_FrameBuffer_ERR_MMAP;
 	}
 
 	return (jlong) (intptr_t) di;
@@ -112,7 +124,6 @@ JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_closeDevice(
 	struct deviceInfo *di = (struct deviceInfo *) (intptr_t) jdi;
 
 	free(di->deviceName);
-	free(di->previous);
 
 	if (di->fbfd != 0) {
 		munmap(di->fbp, di->screensize);
@@ -146,34 +157,45 @@ JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_getDeviceBitsPerPi
 	return di->bpp;
 }
 
-static inline unsigned short to_16bit(unsigned int rgb) {
-	unsigned char r = (rgb >> 16) & 0x0ff;
-	unsigned char g = (rgb >> 8) & 0x0ff;
-	unsigned char b = (rgb) & 0x0ff;
-
-	return ((r / 8) << 11) + ((g / 4) << 5) + (b / 8);
-}
-
-static inline unsigned int from_16bit(unsigned short rgb) {
-	unsigned int r = 0xff & ((rgb >> 11) << 3);
-	unsigned int g = 0xff & ((rgb >> 5) << 2);
-	unsigned int b = 0xff & (rgb << 2);
-
-	return (r << 16) + (g << 8) + b;
-}
-
 JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_writeRGB
 (JNIEnv *env, jclass clazz, jlong ptr, jint idx, jint rgb) {
 	struct deviceInfo	*di = (struct deviceInfo *) (intptr_t) ptr;
-	unsigned short *p = (unsigned short *) di->fbp;
+	if(di->bpp == 16) {
+		unsigned short *p = (unsigned short *) di->fbp;
+		unsigned char r = (rgb >> 16) & 0x0ff;
+		unsigned char g = (rgb >> 8) & 0x0ff;
+		unsigned char b = (rgb) & 0x0ff;
 
-	p[idx] = to_16bit(rgb);
+		p[idx] = ((r / 8) << 11) + ((g / 4) << 5) + (b / 8);
+	} else if(di->bpp == 24) {
+		unsigned char *p = (unsigned char *) di->fbp;
+		unsigned char r = (unsigned char)(0xFF & (rgb >> 16));
+		unsigned char g = (unsigned char)(0xFF & (rgb >> 8));
+		unsigned char b = (unsigned char)(0xFF & rgb);
+
+		p[3*idx] = r;
+		p[3*idx + 1] = g;
+		p[3*idx + 2] = b;
+	}
 }
 
 JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_readRGB
 (JNIEnv *env, jclass clazz, jlong ptr, jint idx) {
 	struct deviceInfo	*di = (struct deviceInfo *) (intptr_t) ptr;
-	unsigned short *p = (unsigned short *) di->fbp;
+	if(di->bpp == 16) {
+		unsigned short *p = (unsigned short *) di->fbp;
+		unsigned int r = 0xff & ((rgb >> 11) << 3);
+		unsigned int g = 0xff & ((rgb >> 5) << 2);
+		unsigned int b = 0xff & (rgb << 2);
 
-	return from_16bit(p[idx]);
+		return (r << 16) + (g << 8) + b;
+	} else if(di->bpp == 24) {
+		unsigned char *p = (unsigned char *) di->fbp;
+		unsigned int r = p[3*idx];
+		unsigned int g = p[3*idx + 1];
+		unsigned int b = p[3*idx + 2];
+
+		return (r << 16) + (g << 8) + b;
+	} else
+		return -1;
 }
