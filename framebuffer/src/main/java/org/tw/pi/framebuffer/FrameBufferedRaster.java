@@ -7,7 +7,7 @@ import java.io.Closeable;
 
 public class FrameBufferedRaster extends WritableRaster implements Closeable {
 
-	private FrameBuffer fb;
+	final private FrameBuffer fb;
 	
 	public FrameBufferedRaster(FrameBuffer fb) {
 		this(ColorEndian.RGB, fb);

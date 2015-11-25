@@ -6,7 +6,7 @@ import java.io.Closeable;
 import java.io.IOException;
 
 public class FrameBufferedImage extends BufferedImage implements Closeable {
-	private FrameBuffer fb;
+	final private FrameBuffer fb;
 	
 	public FrameBufferedImage(String fbdev) throws IOException {
 		this(new FrameBuffer(fbdev));
