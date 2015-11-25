@@ -1,15 +1,8 @@
-/*
- *	This file is the JNI Java part of a Raspberry Pi FrameBuffer project.
- *
- *	Created 2013 by Thomas Welsch (ttww@gmx.de).
- *
- *	Do whatever you want to do with it :-)
- *
- **/
 
 package org.tw.pi.framebuffer;
 
 import java.awt.color.ColorSpace;
+import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.DataBuffer;
 import java.awt.image.DirectColorModel;
@@ -19,12 +12,13 @@ import java.awt.image.SinglePixelPackedSampleModel;
 import org.tw.pi.NarSystem;
 
 public abstract class FrameBuffers {
-	static final long DUMMY = -1;
-	static final long ERR_OPEN = 1;
-	static final long ERR_FIXED = 2;
-	static final long ERR_VARIABLE = 3;
-	static final long ERR_BITS = 4;
-	static final long ERR_MMAP = 5;
+	public static BufferedImage open(String fbdev) {
+		return open(ColorEndian.RGB, fbdev);
+	}
+	
+	public static BufferedImage open(ColorEndian ce, String fbdev) {
+		return new FrameBufferedImage(fbdev);
+	}
 
 	public static enum ColorEndian {
 		RGB(new int[]{
@@ -79,45 +73,35 @@ public abstract class FrameBuffers {
 		}
 
 		public ColorModel createColorModel(int bpp) {
-			return FrameBuffers.createColorModel(this, bpp);
+			return new DirectColorModel(
+					ColorSpace.getInstance(ColorSpace.CS_sRGB),
+					bpp,
+					getComponentMask(bpp, ColorEndian.RED_COMPONENT),
+					getComponentMask(bpp, ColorEndian.GREEN_COMPONENT),
+					getComponentMask(bpp, ColorEndian.BLUE_COMPONENT),
+					0x0,
+					false,
+					DataBuffer.TYPE_INT);
 		}
 		public SampleModel createSampleModel(int w, int h, int bpp) {
-			return FrameBuffers.createSampleModel(this, w, h, bpp);
+			return new SinglePixelPackedSampleModel(
+					DataBuffer.TYPE_INT, 
+					w, 
+					h, 
+					new int[] {
+							getComponentMask(bpp, ColorEndian.RED_COMPONENT),
+							getComponentMask(bpp, ColorEndian.GREEN_COMPONENT),
+							getComponentMask(bpp, ColorEndian.BLUE_COMPONENT),
+					});
 		}
 	}
 
-	public static ColorModel createColorModel(ColorEndian ce, int bpp) {
-		return new DirectColorModel(
-				ColorSpace.getInstance(ColorSpace.CS_sRGB),
-				bpp,
-				ce.getComponentMask(bpp, ColorEndian.RED_COMPONENT),
-				ce.getComponentMask(bpp, ColorEndian.GREEN_COMPONENT),
-				ce.getComponentMask(bpp, ColorEndian.BLUE_COMPONENT),
-				0x0,
-				false,
-				DataBuffer.TYPE_INT);
-	}
-
-
-	public static SampleModel createSampleModel(ColorEndian ce, int w, int h, int bpp) {
-		return new SinglePixelPackedSampleModel(
-				DataBuffer.TYPE_INT, 
-				w, 
-				h, 
-				new int[] {
-						ce.getComponentMask(bpp, ColorEndian.RED_COMPONENT),
-						ce.getComponentMask(bpp, ColorEndian.GREEN_COMPONENT),
-						ce.getComponentMask(bpp, ColorEndian.BLUE_COMPONENT),
-				});
-	}
-	
-	public static FrameBufferedImage openImage(String fbdev) {
-		return new FrameBufferedImage(fbdev);
-	}
-
-	public static FrameBufferedImage openImage(ColorEndian ce, String fbdev) {
-		return new FrameBufferedImage(ce, fbdev);
-	}
+	static final long DUMMY = -1;
+	static final long ERR_OPEN = 1;
+	static final long ERR_FIXED = 2;
+	static final long ERR_VARIABLE = 3;
+	static final long ERR_BITS = 4;
+	static final long ERR_MMAP = 5;
 
 	static native long openDevice0(String fbdev);
 	static native void closeDevice0(long ptr);

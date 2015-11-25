@@ -8,21 +8,33 @@ public class FrameBufferedImageTest {
 	
 	@Test
 	public void testCompatibility16bpp() {
+		FrameBufferedRaster r = null;
+		FrameBuffer fb = null;
 		ColorEndian ce = ColorEndian.RGB;
-		Assert.assertTrue(FrameBuffers.createColorModel(ce, 16).isCompatibleSampleModel(FrameBuffers.createSampleModel(ce, 1, 1, 16)));
-		Assert.assertTrue(FrameBuffers.createColorModel(ce, 16).isCompatibleRaster(new FrameBufferedRaster(ce, new FrameBuffer(1, 1, 16))));
+		Assert.assertTrue(ce.createColorModel(16).isCompatibleSampleModel(ce.createSampleModel(1, 1, 16)));
+		Assert.assertTrue(ce.createColorModel(16).isCompatibleRaster(r = new FrameBufferedRaster(fb = new FrameBuffer(1, 1, 16))));
+		r.close();
+		fb.close();
 		ce = ColorEndian.BGR;
-		Assert.assertTrue(FrameBuffers.createColorModel(ce, 16).isCompatibleSampleModel(FrameBuffers.createSampleModel(ce, 1, 1, 16)));
-		Assert.assertTrue(FrameBuffers.createColorModel(ce, 16).isCompatibleRaster(new FrameBufferedRaster(ce, new FrameBuffer(1, 1, 16))));
+		Assert.assertTrue(ce.createColorModel(16).isCompatibleSampleModel(ce.createSampleModel(1, 1, 16)));
+		Assert.assertTrue(ce.createColorModel(16).isCompatibleRaster(r = new FrameBufferedRaster(fb = new FrameBuffer(1, 1, 16))));
+		r.close();
+		fb.close();
 	}
 
 	@Test
 	public void testCompatibility24bpp() {
+		FrameBufferedRaster r = null;
+		FrameBuffer fb = null;
 		ColorEndian ce = ColorEndian.RGB;
-		Assert.assertTrue(FrameBuffers.createColorModel(ce, 24).isCompatibleSampleModel(FrameBuffers.createSampleModel(ce, 1, 1, 24)));
-		Assert.assertTrue(FrameBuffers.createColorModel(ce, 24).isCompatibleRaster(new FrameBufferedRaster(ce, new FrameBuffer(1, 1, 24))));
+		Assert.assertTrue(ce.createColorModel(24).isCompatibleSampleModel(ce.createSampleModel(1, 1, 24)));
+		Assert.assertTrue(ce.createColorModel(24).isCompatibleRaster(r = new FrameBufferedRaster(fb = new FrameBuffer(1, 1, 24))));
+		r.close();
+		fb.close();
 		ce = ColorEndian.BGR;
-		Assert.assertTrue(FrameBuffers.createColorModel(ce, 24).isCompatibleSampleModel(FrameBuffers.createSampleModel(ce, 1, 1, 24)));
-		Assert.assertTrue(FrameBuffers.createColorModel(ce, 24).isCompatibleRaster(new FrameBufferedRaster(ce, new FrameBuffer(1, 1, 24))));
+		Assert.assertTrue(ce.createColorModel(24).isCompatibleSampleModel(ce.createSampleModel(1, 1, 24)));
+		Assert.assertTrue(ce.createColorModel(24).isCompatibleRaster(r = new FrameBufferedRaster(fb = new FrameBuffer(1, 1, 24))));
+		r.close();
+		fb.close();
 	}
 }

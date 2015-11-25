@@ -3,10 +3,11 @@ package org.tw.pi.framebuffer;
 import java.awt.Point;
 import java.awt.image.SampleModel;
 import java.awt.image.WritableRaster;
+import java.io.Closeable;
 
 import org.tw.pi.framebuffer.FrameBuffers.ColorEndian;
 
-public class FrameBufferedRaster extends WritableRaster {
+public class FrameBufferedRaster extends WritableRaster implements Closeable {
 
 	private FrameBuffer fb;
 	
@@ -25,5 +26,10 @@ public class FrameBufferedRaster extends WritableRaster {
 	
 	public FrameBuffer getFrameBuffer() {
 		return fb;
+	}
+	
+	@Override
+	public void close() {
+		fb.close();
 	}
 }

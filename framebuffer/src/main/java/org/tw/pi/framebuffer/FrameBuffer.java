@@ -1,8 +1,9 @@
 package org.tw.pi.framebuffer;
 
 import java.awt.image.DataBuffer;
+import java.io.Closeable;
 
-public class FrameBuffer extends DataBuffer {
+public class FrameBuffer extends DataBuffer implements Closeable {
 	public static final int DEFAULT_DUMMY_WIDTH = 320;
 	public static final int DEFAULT_DUMMY_HEIGHT = 240;
 	public static final int DEFAULT_COLOR_DEPTH = 24;

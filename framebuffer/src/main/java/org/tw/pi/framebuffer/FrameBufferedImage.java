@@ -2,10 +2,11 @@ package org.tw.pi.framebuffer;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
+import java.io.Closeable;
 
 import org.tw.pi.framebuffer.FrameBuffers.ColorEndian;
 
-public class FrameBufferedImage extends BufferedImage {
+public class FrameBufferedImage extends BufferedImage implements Closeable {
 	private FrameBuffer fb;
 	
 	public FrameBufferedImage(String fbdev) {
