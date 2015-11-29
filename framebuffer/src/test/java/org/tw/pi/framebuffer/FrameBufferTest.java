@@ -45,6 +45,10 @@ public class FrameBufferTest {
 			int radius = Math.min(dim.width, dim.height) / 2 - 1;
 			
 			Calendar c = Calendar.getInstance();
+			
+			g.setColor(Color.GRAY);
+			g.fillOval(center.x - radius, center.y - radius, radius * 2, radius * 2);
+			
 			g.setColor(Color.WHITE);
 			g.drawOval(center.x - radius, center.y - radius, radius * 2, radius * 2);
 			
@@ -93,7 +97,7 @@ public class FrameBufferTest {
 				
 				Thread.sleep(125);
 
-				g.setColor(Color.BLACK);
+				g.setColor(Color.GRAY);
 
 				p = project(center, hour, 12, radius * 1 / 2 - 12);
 				g.drawLine(center.x, center.y, p.x, p.y);
