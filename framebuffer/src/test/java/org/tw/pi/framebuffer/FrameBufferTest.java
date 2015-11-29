@@ -19,7 +19,7 @@ public class FrameBufferTest {
 		double radians = Math.PI / 2 - (value / (double) max) * (2 * Math.PI);
 		Point p = new Point(center.x, center.y);
 		p.x += length * Math.cos(radians);
-		p.y += length * Math.sin(radians);
+		p.y -= length * Math.sin(radians);
 		return p;
 	}
 	
