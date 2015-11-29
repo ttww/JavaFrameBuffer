@@ -38,7 +38,7 @@ public class FrameBufferTest {
 			
 			for(int i = 0; i < 12; i++) {
 				Point p1 = project(center, i, 12, radius * 8 / 9);
-				Point p2 = project(center, i, 12, radius * 9 / 10);
+				Point p2 = project(center, i, 12, radius * 19 / 20);
 				g.drawLine(p1.x, p1.y, p2.x, p2.y);
 			}
 			
