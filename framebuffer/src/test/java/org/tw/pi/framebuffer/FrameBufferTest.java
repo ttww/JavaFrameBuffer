@@ -29,7 +29,7 @@ public class FrameBufferTest {
 			Graphics2D g = (Graphics2D) fb.getGraphics();
 			Dimension dim = new Dimension(fb.getWidth(), fb.getHeight());
 			Point center = new Point(dim.width / 2, dim.height / 2);
-			int radius = Math.min(dim.width, dim.height) / 2;
+			int radius = Math.min(dim.width, dim.height) / 2 - 1;
 			Calendar c = Calendar.getInstance();
 			g.setColor(Color.BLACK);
 			g.fillRect(0, 0, dim.width, dim.height);
