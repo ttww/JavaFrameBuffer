@@ -194,12 +194,11 @@ JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_writeRGB0
 		return;
 
 	p += (width * idx);
-	p += (width - 1);
 	while(width > 0) {
 		*p = (unsigned char)(0xFF & rgb);
 		rgb = rgb >> 8;
 		width--;
-		p--;
+		p++;
 	}
 }
 
@@ -224,10 +223,11 @@ JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_readRGB0
 	unsigned int rgb = 0;
 
 	p += (width * idx);
+	p += width - 1;
 	while(width > 0) {
 		rgb = (rgb << 8) + *p;
 		width--;
-		p++;
+		p--;
 	}
 
 	return rgb;
