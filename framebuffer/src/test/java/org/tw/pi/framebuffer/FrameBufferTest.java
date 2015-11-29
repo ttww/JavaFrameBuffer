@@ -54,7 +54,7 @@ public class FrameBufferTest {
 				g.drawLine(p1.x, p1.y, p2.x, p2.y);
 			}
 			
-			g.setFont(new Font("Monospace", Font.BOLD, 6));
+			g.setFont(new Font("Monospace", Font.BOLD, 12));
 			FontMetrics fm = g.getFontMetrics();
 			
 			while(true) {
@@ -71,20 +71,23 @@ public class FrameBufferTest {
 				
 				g.setColor(Color.WHITE);
 		
-				p = project(center, hour, 12, radius * 1 / 2);
+				p = project(center, hour, 12, radius * 1 / 2 - 12);
 				g.drawLine(center.x, center.y, p.x, p.y);
 				d = bounds(fm, String.valueOf(hour));
+				p = project(center, hour, 12, radius * 1 / 2);
 				g.drawString(String.valueOf(hour), p.x - d.width / 2, p.y + d.height / 2);
 				
 				
-				p = project(center, minute, 60, radius * 2 / 3);
+				p = project(center, minute, 60, radius * 2 / 3 - 12);
 				g.drawLine(center.x, center.y, p.x, p.y);
 				d = bounds(fm, String.valueOf(minute));
+				p = project(center, minute, 60, radius * 2 / 3);
 				g.drawString(String.valueOf(minute), p.x - d.width / 2, p.y + d.height / 2);
 				
-				p = project(center, second, 60, radius * 3 / 4);
+				p = project(center, second, 60, radius * 3 / 4 - 12);
 				g.drawLine(center.x, center.y, p.x, p.y);
 				d = bounds(fm, String.valueOf(second));
+				p = project(center, second, 60, radius * 3 / 4);
 				g.drawString(String.valueOf(second), p.x - d.width / 2, p.y + d.height / 2);
 
 				
