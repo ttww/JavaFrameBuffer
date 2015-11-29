@@ -35,6 +35,13 @@ public class FrameBufferTest {
 			g.fillRect(0, 0, dim.width, dim.height);
 			g.setColor(Color.WHITE);
 			g.drawOval(center.x - radius, center.y - radius, radius * 2, radius * 2);
+			
+			for(int i = 0; i < 12; i++) {
+				Point p1 = project(center, i, 12, radius * 8 / 9);
+				Point p2 = project(center, i, 12, radius);
+				g.drawLine(p1.x, p1.y, p2.x, p2.y);
+			}
+			
 			while(true) {
 				c.setTimeInMillis(System.currentTimeMillis());
 				int hour = c.get(Calendar.HOUR);
