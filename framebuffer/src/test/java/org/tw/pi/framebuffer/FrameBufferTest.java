@@ -16,7 +16,7 @@ public class FrameBufferTest {
 	}
 	
 	private static Point project(Point center, int value, int max, int length) {
-		double radians = (value / (double) max) * (2 * Math.PI);
+		double radians = Math.PI / 2 - (value / (double) max) * (2 * Math.PI);
 		Point p = new Point(center.x, center.y);
 		p.x += length * Math.cos(radians);
 		p.y += length * Math.sin(radians);
