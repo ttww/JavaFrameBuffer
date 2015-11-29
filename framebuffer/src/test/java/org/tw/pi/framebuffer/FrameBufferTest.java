@@ -91,7 +91,7 @@ public class FrameBufferTest {
 				g.drawString(String.valueOf(second), p.x - d.width / 2, p.y + d.height / 2);
 
 				
-				Thread.sleep(500);
+				Thread.sleep(125);
 
 				g.setColor(Color.BLACK);
 
