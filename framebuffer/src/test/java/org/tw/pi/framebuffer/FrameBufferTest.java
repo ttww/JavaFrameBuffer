@@ -2,9 +2,12 @@ package org.tw.pi.framebuffer;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.font.LineMetrics;
 import java.util.Calendar;
 
 import org.junit.Test;
@@ -23,16 +26,25 @@ public class FrameBufferTest {
 		return p;
 	}
 	
+	private static Dimension bounds(FontMetrics fm, String s) {
+		Dimension d = new Dimension();
+		d.height += fm.getHeight();
+		d.width += fm.stringWidth(s);
+		return d;
+	}
+	
 	public static void main(String[] args) throws Exception {
 		FrameBufferedImage fb = new FrameBufferedImage(args[0]);
 		try {
 			Graphics2D g = (Graphics2D) fb.getGraphics();
 			Dimension dim = new Dimension(fb.getWidth(), fb.getHeight());
-			Point center = new Point(dim.width / 2, dim.height / 2);
-			int radius = Math.min(dim.width, dim.height) / 2 - 1;
-			Calendar c = Calendar.getInstance();
 			g.setColor(Color.BLACK);
 			g.fillRect(0, 0, dim.width, dim.height);
+
+			Point center = new Point(dim.width / 2, dim.height / 2);
+			int radius = Math.min(dim.width, dim.height) / 2 - 1;
+			
+			Calendar c = Calendar.getInstance();
 			g.setColor(Color.WHITE);
 			g.drawOval(center.x - radius, center.y - radius, radius * 2, radius * 2);
 			
@@ -42,35 +54,59 @@ public class FrameBufferTest {
 				g.drawLine(p1.x, p1.y, p2.x, p2.y);
 			}
 			
+			g.setFont(new Font("Monospace", Font.BOLD, 6));
+			FontMetrics fm = g.getFontMetrics();
+			
 			while(true) {
 				c.setTimeInMillis(System.currentTimeMillis());
 				int hour = c.get(Calendar.HOUR);
 				int minute = c.get(Calendar.MINUTE);
 				int second = c.get(Calendar.SECOND);
 
+				if(hour == 0)
+					hour = 12;
+				
 				Point p;
+				Dimension d;
 				
 				g.setColor(Color.WHITE);
+		
 				p = project(center, hour, 12, radius * 1 / 2);
 				g.drawLine(center.x, center.y, p.x, p.y);
+				d = bounds(fm, String.valueOf(hour));
+				g.drawString(String.valueOf(hour), p.x - d.width / 2, p.y + d.height / 2);
+				
 				
 				p = project(center, minute, 60, radius * 2 / 3);
 				g.drawLine(center.x, center.y, p.x, p.y);
+				d = bounds(fm, String.valueOf(minute));
+				g.drawString(String.valueOf(minute), p.x - d.width / 2, p.y + d.height / 2);
 				
 				p = project(center, second, 60, radius * 3 / 4);
 				g.drawLine(center.x, center.y, p.x, p.y);
+				d = bounds(fm, String.valueOf(second));
+				g.drawString(String.valueOf(second), p.x - d.width / 2, p.y + d.height / 2);
+
 				
 				Thread.sleep(500);
 
 				g.setColor(Color.BLACK);
+
 				p = project(center, hour, 12, radius * 1 / 2);
 				g.drawLine(center.x, center.y, p.x, p.y);
+				d = bounds(fm, String.valueOf(hour));
+				g.drawString(String.valueOf(hour), p.x - d.width / 2, p.y + d.height / 2);
+				
 				
 				p = project(center, minute, 60, radius * 2 / 3);
 				g.drawLine(center.x, center.y, p.x, p.y);
+				d = bounds(fm, String.valueOf(minute));
+				g.drawString(String.valueOf(minute), p.x - d.width / 2, p.y + d.height / 2);
 				
 				p = project(center, second, 60, radius * 3 / 4);
 				g.drawLine(center.x, center.y, p.x, p.y);
+				d = bounds(fm, String.valueOf(second));
+				g.drawString(String.valueOf(second), p.x - d.width / 2, p.y + d.height / 2);
 				
 			}
 		} finally {
