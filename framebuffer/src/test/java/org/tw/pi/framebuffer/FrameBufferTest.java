@@ -28,7 +28,7 @@ public class FrameBufferTest {
 	
 	private static Dimension bounds(FontMetrics fm, String s) {
 		Dimension d = new Dimension();
-		d.height += fm.getHeight();
+		d.height += fm.getAscent();
 		d.width += fm.stringWidth(s);
 		return d;
 	}
