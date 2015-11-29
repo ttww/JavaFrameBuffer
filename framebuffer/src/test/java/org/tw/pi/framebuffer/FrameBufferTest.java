@@ -38,7 +38,7 @@ public class FrameBufferTest {
 			
 			for(int i = 0; i < 12; i++) {
 				Point p1 = project(center, i, 12, radius * 8 / 9);
-				Point p2 = project(center, i, 12, radius);
+				Point p2 = project(center, i, 12, radius * 9 / 10);
 				g.drawLine(p1.x, p1.y, p2.x, p2.y);
 			}
 			
@@ -51,25 +51,25 @@ public class FrameBufferTest {
 				Point p;
 				
 				g.setColor(Color.WHITE);
-				p = project(center, hour, 12, radius * 2 / 3);
+				p = project(center, hour, 12, radius * 1 / 2);
 				g.drawLine(center.x, center.y, p.x, p.y);
 				
-				p = project(center, minute, 60, radius * 3 / 4);
+				p = project(center, minute, 60, radius * 2 / 3);
 				g.drawLine(center.x, center.y, p.x, p.y);
 				
-				p = project(center, second, 60, radius * 5 / 6);
+				p = project(center, second, 60, radius * 3 / 4);
 				g.drawLine(center.x, center.y, p.x, p.y);
 				
 				Thread.sleep(500);
 
 				g.setColor(Color.BLACK);
-				p = project(center, hour, 12, radius * 2 / 3);
+				p = project(center, hour, 12, radius * 1 / 2);
 				g.drawLine(center.x, center.y, p.x, p.y);
 				
-				p = project(center, minute, 60, radius * 3 / 4);
+				p = project(center, minute, 60, radius * 2 / 3);
 				g.drawLine(center.x, center.y, p.x, p.y);
 				
-				p = project(center, second, 60, radius * 5 / 6);
+				p = project(center, second, 60, radius * 3 / 4);
 				g.drawLine(center.x, center.y, p.x, p.y);
 				
 			}
