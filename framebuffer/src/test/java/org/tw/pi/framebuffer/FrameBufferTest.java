@@ -31,18 +31,20 @@ public class FrameBufferTest {
 			Point center = new Point(dim.width / 2, dim.height / 2);
 			int radius = Math.min(dim.width, dim.height) / 2;
 			Calendar c = Calendar.getInstance();
+			g.setColor(Color.BLACK);
+			g.fillRect(0, 0, dim.width, dim.height);
+			g.setColor(Color.WHITE);
+			g.drawOval(center.x - radius, center.y - radius, radius * 2, radius * 2);
 			while(true) {
-				g.setColor(Color.BLACK);
-				g.fillRect(0, 0, dim.width, dim.height);
-				g.setColor(Color.WHITE);
-				g.drawOval(center.x - radius, center.y - radius, radius * 2, radius * 2);
-
 				c.setTimeInMillis(System.currentTimeMillis());
 				int hour = c.get(Calendar.HOUR);
 				int minute = c.get(Calendar.MINUTE);
 				int second = c.get(Calendar.SECOND);
+
+				Point p;
 				
-				Point p = project(center, hour, 12, radius * 2 / 3);
+				g.setColor(Color.WHITE);
+				p = project(center, hour, 12, radius * 2 / 3);
 				g.drawLine(center.x, center.y, p.x, p.y);
 				
 				p = project(center, minute, 60, radius * 3 / 4);
@@ -52,6 +54,17 @@ public class FrameBufferTest {
 				g.drawLine(center.x, center.y, p.x, p.y);
 				
 				Thread.sleep(500);
+
+				g.setColor(Color.BLACK);
+				p = project(center, hour, 12, radius * 2 / 3);
+				g.drawLine(center.x, center.y, p.x, p.y);
+				
+				p = project(center, minute, 60, radius * 3 / 4);
+				g.drawLine(center.x, center.y, p.x, p.y);
+				
+				p = project(center, second, 60, radius * 5 / 6);
+				g.drawLine(center.x, center.y, p.x, p.y);
+				
 			}
 		} finally {
 			fb.close();
