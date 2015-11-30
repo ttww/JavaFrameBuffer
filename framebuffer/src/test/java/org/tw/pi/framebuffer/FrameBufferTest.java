@@ -49,7 +49,7 @@ public class FrameBufferTest {
 			
 			Calendar c = Calendar.getInstance();
 			
-			g.setColor(Color.RED);
+			g.setColor(Color.MAGENTA);
 			g.fillOval(center.x - radius, center.y - radius, radius * 2, radius * 2);
 			
 			g.setColor(Color.WHITE);
@@ -102,7 +102,7 @@ public class FrameBufferTest {
 				
 				Thread.sleep(125);
 
-				g.setColor(Color.RED);
+				g.setColor(Color.MAGENTA);
 
 				p = project(center, hour, 12, radius * 1 / 2 - 12);
 				g.drawLine(center.x, center.y, p.x, p.y);
