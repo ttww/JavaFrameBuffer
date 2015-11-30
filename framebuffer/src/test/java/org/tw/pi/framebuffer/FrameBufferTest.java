@@ -7,7 +7,6 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.RenderingHints;
 import java.awt.font.LineMetrics;
 import java.util.Calendar;
 
@@ -38,9 +37,6 @@ public class FrameBufferTest {
 		FrameBufferedImage fb = new FrameBufferedImage(args[0]);
 		try {
 			Graphics2D g = (Graphics2D) fb.getGraphics();
-			
-			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-			
 			Dimension dim = new Dimension(fb.getWidth(), fb.getHeight());
 			g.setColor(Color.BLACK);
 			g.fillRect(0, 0, dim.width, dim.height);
