@@ -1,5 +1,6 @@
 package org.tw.pi.framebuffer;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -42,7 +43,9 @@ public class FrameBufferTest {
 			g.fillRect(0, 0, dim.width, dim.height);
 
 			Point center = new Point(dim.width / 2, dim.height / 2);
-			int radius = Math.min(dim.width, dim.height) / 2 - 1;
+			int radius = Math.min(dim.width, dim.height) / 2 - 3;
+			
+			g.setStroke(new BasicStroke(2f));
 			
 			Calendar c = Calendar.getInstance();
 			
