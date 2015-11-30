@@ -18,7 +18,7 @@ public class FrameBufferTest {
 		Class.forName(FrameBuffers.class.getName());
 	}
 	
-	private static Point project(Point center, int value, int max, int length) {
+	private static Point project(Point center, double value, double max, int length) {
 		double radians = Math.PI / 2 - (value / (double) max) * (2 * Math.PI);
 		Point p = new Point(center.x, center.y);
 		p.x += length * Math.cos(radians);
@@ -63,13 +63,14 @@ public class FrameBufferTest {
 			
 			while(true) {
 				c.setTimeInMillis(System.currentTimeMillis());
-				int hour = c.get(Calendar.HOUR);
-				int minute = c.get(Calendar.MINUTE);
-				int second = c.get(Calendar.SECOND);
-				int ms = c.get(Calendar.MILLISECOND);
 
-				if(hour == 0)
-					hour = 12;
+				double ms = c.get(Calendar.MILLISECOND);
+				double second = c.get(Calendar.SECOND) + ms / 1000;
+				double minute = c.get(Calendar.MINUTE) + second / 60;
+				double hour = c.get(Calendar.HOUR) + minute / 60;
+
+				if(((int) hour) == 0)
+					hour += 12;
 				
 				Point p;
 				Dimension d;
@@ -78,22 +79,22 @@ public class FrameBufferTest {
 		
 				p = project(center, hour, 12, radius * 1 / 2 - 12);
 				g.drawLine(center.x, center.y, p.x, p.y);
-				d = bounds(fm, String.valueOf(hour));
+				d = bounds(fm, String.valueOf((int) hour));
 				p = project(center, hour, 12, radius * 1 / 2);
-				g.drawString(String.valueOf(hour), p.x - d.width / 2, p.y + d.height / 2);
+				g.drawString(String.valueOf((int) hour), p.x - d.width / 2, p.y + d.height / 2);
 				
 				
 				p = project(center, minute, 60, radius * 2 / 3 - 12);
 				g.drawLine(center.x, center.y, p.x, p.y);
-				d = bounds(fm, String.valueOf(minute));
+				d = bounds(fm, String.valueOf((int) minute));
 				p = project(center, minute, 60, radius * 2 / 3);
-				g.drawString(String.valueOf(minute), p.x - d.width / 2, p.y + d.height / 2);
+				g.drawString(String.valueOf((int) minute), p.x - d.width / 2, p.y + d.height / 2);
 				
-				p = project(center, second * 1000 + ms, 60000, radius * 3 / 4 - 12);
+				p = project(center, second, 60, radius * 3 / 4 - 12);
 				g.drawLine(center.x, center.y, p.x, p.y);
-				d = bounds(fm, String.valueOf(second));
-				p = project(center, second * 1000 + ms, 60000, radius * 3 / 4);
-				g.drawString(String.valueOf(second), p.x - d.width / 2, p.y + d.height / 2);
+				d = bounds(fm, String.valueOf((int) second));
+				p = project(center, second, 60, radius * 3 / 4);
+				g.drawString(String.valueOf((int) second), p.x - d.width / 2, p.y + d.height / 2);
 
 				
 				Thread.sleep(125);
@@ -102,22 +103,22 @@ public class FrameBufferTest {
 
 				p = project(center, hour, 12, radius * 1 / 2 - 12);
 				g.drawLine(center.x, center.y, p.x, p.y);
-				d = bounds(fm, String.valueOf(hour));
+				d = bounds(fm, String.valueOf((int) hour));
 				p = project(center, hour, 12, radius * 1 / 2);
-				g.drawString(String.valueOf(hour), p.x - d.width / 2, p.y + d.height / 2);
+				g.drawString(String.valueOf((int) hour), p.x - d.width / 2, p.y + d.height / 2);
 				
 				
 				p = project(center, minute, 60, radius * 2 / 3 - 12);
 				g.drawLine(center.x, center.y, p.x, p.y);
-				d = bounds(fm, String.valueOf(minute));
+				d = bounds(fm, String.valueOf((int) minute));
 				p = project(center, minute, 60, radius * 2 / 3);
-				g.drawString(String.valueOf(minute), p.x - d.width / 2, p.y + d.height / 2);
+				g.drawString(String.valueOf((int) minute), p.x - d.width / 2, p.y + d.height / 2);
 				
-				p = project(center, second * 1000 + ms, 60000, radius * 3 / 4 - 12);
+				p = project(center, second, 60, radius * 3 / 4 - 12);
 				g.drawLine(center.x, center.y, p.x, p.y);
-				d = bounds(fm, String.valueOf(second));
-				p = project(center, second * 1000 + ms, 60000, radius * 3 / 4);
-				g.drawString(String.valueOf(second), p.x - d.width / 2, p.y + d.height / 2);
+				d = bounds(fm, String.valueOf((int) second));
+				p = project(center, second, 60, radius * 3 / 4);
+				g.drawString(String.valueOf((int) second), p.x - d.width / 2, p.y + d.height / 2);
 				
 			}
 		} finally {
