@@ -49,6 +49,8 @@ static struct FrameBufferData {
 	long int screensize;
 
 	char *fbp;
+
+	char *cache;
 };
 
 /*
@@ -114,7 +116,7 @@ JNIEXPORT jlong JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_openDevice0(
 
 	di->fbp = (char*) mmap(0, di->screensize, PROT_READ | PROT_WRITE, MAP_SHARED, di->fbfd, 0);
 
-	if ((int) di->fbp == -1) {
+	if (((int) di->fbp == -1) || ((di->cache = malloc(di->screensize)) == NULL)) {
 		close(di->fbfd);
 		free(di->deviceName);
 		return org_tw_pi_framebuffer_FrameBuffers_ERR_MMAP;
@@ -133,11 +135,10 @@ JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_closeDevice0(
 	struct FrameBufferData *di = (struct FrameBufferData *) (intptr_t) jdi;
 
 	free(di->deviceName);
+	free(di->cache);
 
-	if (di->fbfd != 0) {
-		munmap(di->fbp, di->screensize);
-		close(di->fbfd);
-	}
+	munmap(di->fbp, di->screensize);
+	close(di->fbfd);
 
 	memset(di, 0, sizeof(*di));
 }
@@ -182,6 +183,7 @@ JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_writeRGB0
 (JNIEnv *env, jclass clazz, jlong ptr, jint idx, jint rgb) {
 	struct FrameBufferData	*di = (struct FrameBufferData *) (intptr_t) ptr;
 	unsigned char *p = (unsigned char *) di->fbp;
+	unsigned char *q = (unsigned char *) di->cache;
 	unsigned int width;
 
 	if(di->bpp == 8)
@@ -194,11 +196,14 @@ JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_writeRGB0
 		return;
 
 	p += (width * idx);
+	q += (width * idx);
 	while(width > 0) {
-		*p = (unsigned char)(0xFF & rgb);
+		if(*q != (unsigned char)(0xFF & rgb))
+			*q = *p = (unsigned char)(0xFF & rgb);
 		rgb = rgb >> 8;
 		width--;
 		p++;
+		q++;
 	}
 }
 
@@ -208,7 +213,7 @@ JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_writeRGB0
 JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_readRGB0
 (JNIEnv *env, jclass clazz, jlong ptr, jint idx) {
 	struct FrameBufferData	*di = (struct FrameBufferData *) (intptr_t) ptr;
-	unsigned char *p = (unsigned char *) di->fbp;
+	unsigned char *q = (unsigned char *) di->cache;
 	unsigned int width;
 
 	if(di->bpp == 8)
@@ -222,12 +227,12 @@ JNIEXPORT jint JNICALL Java_org_tw_pi_framebuffer_FrameBuffers_readRGB0
 
 	unsigned int rgb = 0;
 
-	p += (width * idx);
-	p += width - 1;
+	q += (width * idx);
+	q += width - 1;
 	while(width > 0) {
-		rgb = (rgb << 8) + *p;
+		rgb = (rgb << 8) + *q;
 		width--;
-		p--;
+		q--;
 	}
 
 	return rgb;
