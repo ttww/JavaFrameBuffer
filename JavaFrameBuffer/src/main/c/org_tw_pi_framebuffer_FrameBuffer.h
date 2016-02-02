@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 #undef org_tw_pi_framebuffer_FrameBuffer_FPS
-#define org_tw_pi_framebuffer_FrameBuffer_FPS 50L
+#define org_tw_pi_framebuffer_FrameBuffer_FPS 10L
 /*
  * Class:     org_tw_pi_framebuffer_FrameBuffer
  * Method:    openDevice
