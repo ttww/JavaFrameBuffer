@@ -21,9 +21,8 @@
 #ifdef __linux
 	#include <linux/fb.h>
 	#include <sys/ioctl.h>
+	#include <sys/mman.h>
 #endif
-
-#include <sys/mman.h>
 
 #include "org_tw_pi_framebuffer_FrameBuffer.h"
 
@@ -135,7 +134,9 @@ JNIEXPORT void JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_closeDevice(
 	free(di->currentScreen);
 
 	if (di->fbfd != 0) {
+#ifdef __linux
 		munmap(di->fbp, di->screensize);
+#endif
 		close(di->fbfd);
 	}
 
