@@ -2,8 +2,8 @@
 
 jniResult=libFrameBufferJNI.so
 
-jniJdkHeader=/opt/jdk1.7.0_45/include
-jniSysHeader=/opt/jdk1.7.0_45/include/linux
+jniJdkHeader=$JAVA_HOME/include
+jniSysHeader=$JAVA_HOME/include/linux
 
 rm "$jniResult" 2>/dev/null
 
