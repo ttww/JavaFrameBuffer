@@ -199,48 +199,48 @@ JNIEXPORT jboolean JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_updateDeviceBu
 #endif
 
 	switch (di->bpp) {
-	case 0: {
-		// Dummy Device
-		for (i = 0; i < len; i++) {
-			unsigned int u = body[i];
+        case 0: {
+            // Dummy Device
+            for (i = 0; i < len; i++) {
+                unsigned int u = body[i];
 
-			if (current[i] == u)
-				continue;
-			updated = 1;
-			current[i] = u;
-		}
-	}
-	break;
-	case 16: {
-		// Comment from:
-		//		http://raspberrycompote.blogspot.de/2013/03/low-level-graphics-on-raspberry-pi-part_8.html
-		//
-		// The red value has 5 bits, so can be in the range 0-31, therefore divide the original 0-255
-		// value by 8. It is stored in the first 5 bits, so multiply by 2048 or shift 11 bits left.
-		// The green has 6 bits, so can be in the range 0-63, divide by 4, and multiply by 32 or shift
-		// 5 bits left. Finally the blue has 5 bits and is stored at the last bits, so no need to move.
+                if (current[i] == u)
+                    continue;
+                updated = 1;
+                current[i] = u;
+            }
+            break;
+        }
+        case 16: {
+            // Comment from:
+            //		http://raspberrycompote.blogspot.de/2013/03/low-level-graphics-on-raspberry-pi-part_8.html
+            //
+            // The red value has 5 bits, so can be in the range 0-31, therefore divide the original 0-255
+            // value by 8. It is stored in the first 5 bits, so multiply by 2048 or shift 11 bits left.
+            // The green has 6 bits, so can be in the range 0-63, divide by 4, and multiply by 32 or shift
+            // 5 bits left. Finally the blue has 5 bits and is stored at the last bits, so no need to move.
 
-		unsigned short *p = (unsigned short *) di->fbp;
+            unsigned short *p = (unsigned short *) di->fbp;
 
-		for (i = 0; i < len; i++) {
-			unsigned int u = body[i];
+            for (i = 0; i < len; i++) {
+                unsigned int u = body[i];
 
-			if (current[i] == u) continue;
+                if (current[i] == u) continue;
 
-			updated = 1;
-			current[i] = u;
+                updated = 1;
+                current[i] = u;
 
-			unsigned char r = (u >> 16) & 0x0ff;
-			unsigned char g = (u >> 8) & 0x0ff;
-			unsigned char b = (u) & 0x0ff;
+                unsigned char r = (u >> 16) & 0x0ff;
+                unsigned char g = (u >> 8) & 0x0ff;
+                unsigned char b = (u) & 0x0ff;
 
-			//printf("%5d:   %#x  %3d  %3d  %3d  %3d\n",i,u,a,r,g,b);
-			u = ((r / 8) << 11) + ((g / 4) << 5) + (b / 8);
+                //printf("%5d:   %#x  %3d  %3d  %3d  %3d\n",i,u,a,r,g,b);
+                u = ((r / 8) << 11) + ((g / 4) << 5) + (b / 8);
 
-			p[i] = u;
-		}
-	}
-		break;
+                p[i] = u;
+            }
+	        break;
+	    }
 		/*
 		 case 24:
 		 {
@@ -263,9 +263,39 @@ JNIEXPORT jboolean JNICALL Java_org_tw_pi_framebuffer_FrameBuffer_updateDeviceBu
 		 }
 		 break;
 		 */
-	default:
-		fprintf(stderr, "FrameBuffer depth %d not supported, use 16 !\n",
-				di->bpp);
+		 case 32: {
+
+              /*
+                  Format on Linux systems is typically ARGB, but the A channel is ignored so the actual format is XRGB.
+                  This lets us just plug in the existing value straight from java with no overhead.
+
+                  We can also just copy the memory from the input buffer, but that overwrites pixels that haven't changed.
+                  Still faster than looping many times, though.
+              */
+
+              // High speed version:
+              memcpy(di->fbp, body, di->screensize);
+
+              // Low speed version:
+              /*
+              unsigned int *p = ((unsigned int *) di->fbp);
+
+              for (i = 0; i < len; i++) {
+                   unsigned int u = body[i];
+
+                   if (current[i] == u) continue;
+
+                   updated = 1;
+                   current[i] = u;
+
+                   p[i] = u;// & 0x00FFFFFF;
+              }
+              */
+              break;
+
+		 }
+         default:
+              fprintf(stderr, "FrameBuffer depth %d not supported, use 16 !\n", di->bpp);
 	}
 
 #ifdef USE_CRITICAL
