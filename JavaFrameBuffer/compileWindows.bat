@@ -1,8 +1,8 @@
 @echo off
 SET jniResult=FrameBufferJNI.dll
 
-SET jniJdkHeader=C:\Program Files (x86)\Java\jdk1.8.0_65\include
-SET jniSysHeader=C:\Program Files (x86)\Java\jdk1.8.0_65\include\win32
+SET jniJdkHeader=$JAVA_HOME\include
+SET jniSysHeader=$JAVA_HOME\include\win32
 
 del "%jniResult%"
 
